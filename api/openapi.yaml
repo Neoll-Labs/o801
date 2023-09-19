@@ -1,0 +1,113 @@
+openapi: 3.0.0
+info:
+  description: Create and Get User
+  title: O801 API
+  version: 1.0.0
+servers:
+- description: local server
+  url: http://127.0.0.1:8080/
+security:
+- basicAuth: []
+tags:
+- description: User endpoints
+  name: user
+- description: Prometheus metrics
+  name: monitoring
+- description: Health check endpoints
+  name: health check
+paths:
+  /users:
+    post:
+      operationId: CreateUser
+      requestBody:
+        description: Create a new pet in the store
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+            example:
+              Name: nelson
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              example:
+                id: "1"
+                Name: nelson
+              schema:
+                $ref: '#/components/schemas/User'
+          description: "Successful operation, returns user data"
+        "400":
+          description: Invalid request
+        "404":
+          description: user not found
+      tags:
+      - user
+  /users/{id}:
+    get:
+      operationId: GetUser
+      parameters:
+        - name: id
+          in: path
+          description: 'The id that needs to be fetched. '
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                id: "1"
+                Name: nelson
+              schema:
+                $ref: '#/components/schemas/User'
+          description: "Successful operation, returns user data"
+        "400":
+          description: Invalid request
+
+      tags:
+      - user
+  /healthz:
+    get:
+      responses:
+        "200":
+          description: The system is up an running
+        "503":
+          description: Service Unavailable server error response code indicates that
+            the server is not ready to handle
+      summary: Returns the health of the service.
+      tags:
+      - health check
+  /liveness:
+    get:
+      responses:
+        "200":
+          description: The system is up an running
+      summary: Returns whether it is currently operational and responsive.
+      tags:
+      - health check
+  /metrics:
+    get:
+      responses:
+        "200":
+          description: Returns the prometheus metrics
+      summary: Returns whether it is currently operational and responsive.
+      tags:
+      - monitoring
+components:
+  schemas:
+    User:
+      example:
+        id: 1
+        Name: nelson
+      properties:
+        id:
+          type: number
+        Name:
+          type: string
+      required:
+      - id
+      - Name
+      type: object

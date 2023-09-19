@@ -29,7 +29,7 @@ type Server struct {
 	userCache map[int64]User
 }
 
-// gets the user from the database
+// GetUser gets the user from the database.
 func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 	idReq := struct {
 		ID int
@@ -52,7 +52,7 @@ func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 	u := &User{}
 	err := row.Scan(u.ID, u.Name)
 	if err != nil {
-		log.Fatalf("scan user: %w", err)
+		log.Fatalf("scan user: %s", err)
 		return
 	}
 
