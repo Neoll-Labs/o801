@@ -38,19 +38,6 @@ type Server struct {
 	errorHandler internal.ErrorHandler
 }
 
-func (s *Server) Routes() internal.Routes {
-	return internal.Routes{
-		"GetOrCreateUser": internal.Route{
-			"/users",
-			s.GetOrCreateUser,
-		},
-		"GetUser": internal.Route{
-			"/users/",
-			s.GetUser,
-		},
-	}
-}
-
 // GetUser gets the user from the storage.
 func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 	idReq := struct {

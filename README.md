@@ -21,3 +21,19 @@ docker run --rm -v C:/data/o801:/local openapitools/openapi-generator-cli:v7.0.0
 ```html
 http://127.0.0.1:8080/swagger/index.html
 ```
+
+```shell
+
+curl 127.0.0.1:8080/api/v1/users/login
+
+curl 127.0.0.1:8080/api/v1/users/logout
+
+curl 127.0.0.1:8080/api/v1/users/
+
+curl 127.0.0.1:8080/api/v1/docs/openapi.yaml
+
+curl  127.0.0.1:8080/api/v1/swagger/index.html
+
+curl http://127.0.0.1:8080/metrics/
+
+```

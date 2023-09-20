@@ -16,7 +16,6 @@ import (
 
 	o801db "github.com/nelsonstr/o801/db"
 	"github.com/nelsonstr/o801/internal/api"
-	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 func main() {
@@ -25,19 +24,17 @@ func main() {
 	defer func() { _ = dbc.Close() }()
 
 	router := api.NewRouter()
+	router.Metrics()
+
 	v1 := router.ApiVersion(1)
+	v1.SwaggerUI()
+	v1.Prefix("/docs").OpenAPI()
 	v1.Prefix("/auth").AuthEndpoints()
 	v1.Resources("/users").UserEndpoints()
-
-	v1.Resources("/docs").OpenAPI()
 
 	//server0801 := server2.NewServer(db0801.NewUserStorage(dbc))
 
 	log.Printf("start server.")
-
-	//router := internal.NewRouter(server0801)
-
-	//openApiUI(router)
 
 	server := &http.Server{
 		Addr:         ":8080",
@@ -50,14 +47,4 @@ func main() {
 		// Error starting or closing listener.
 		log.Fatalf("HTTP server ListenAndServe: %v", err)
 	}
-}
-
-// openApiUI add swagger UI for demo proposal only.
-func openApiUI(router *http.ServeMux) {
-	router.HandleFunc("/swagger/", httpSwagger.Handler(
-		httpSwagger.URL("http://127.0.0.1:8080/docs/openapi.yaml"), //The url pointing to API definition
-		httpSwagger.DeepLinking(true),
-		httpSwagger.DocExpansion("none"),
-		httpSwagger.DomID("swagger-ui"),
-	))
 }
