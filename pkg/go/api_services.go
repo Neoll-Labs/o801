@@ -80,7 +80,7 @@ func (c *ServicesAPIController) CreateUser(w http.ResponseWriter, r *http.Reques
 	}
 	if createUserReq.Name == "" {
 		log.Println("empty name")
-		c.errorHandler(w, r, nil, &ImplResponse{Code: http.StatusBadRequest})
+		c.errorHandler(w, r, &BadRequestError{}, nil)
 		return
 	}
 
@@ -102,6 +102,11 @@ func (c *ServicesAPIController) GetUser(w http.ResponseWriter, r *http.Request) 
 	}
 
 	path := strings.Split(r.URL.Path, "/")
+	if len(path) < 2 {
+		c.errorHandler(w, r, &BadRequestError{}, nil)
+		return
+	}
+
 	idParam, err := parseNumericParameter[float32](
 		path[2], // "id"
 		WithRequire[float32](parseFloat32),

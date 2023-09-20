@@ -36,10 +36,20 @@ func (e *ParsingError) Error() string {
 
 // MethodNotAllowedError indicates that an error has occurred when parsing request parameters
 type MethodNotAllowedError struct {
+	Err error
 }
 
 func (e *MethodNotAllowedError) Error() string {
-	return ""
+	return e.Err.Error()
+}
+
+// MethodNotAllowedError indicates that an error has occurred when parsing request parameters
+type BadRequestError struct {
+	Err error
+}
+
+func (e *BadRequestError) Error() string {
+	return e.Err.Error()
 }
 
 // RequiredError indicates that an error has occurred when parsing request parameters

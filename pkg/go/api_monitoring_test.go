@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	_ "github.com/nelsonstr/o801/monitoring"
+	_ "github.com/nelsonstr/o801/pkg/monitoring"
 )
 
 func TestMetricEndpoint(t *testing.T) {
