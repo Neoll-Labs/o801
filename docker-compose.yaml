@@ -1,19 +1,16 @@
 version: '3.9'
 services:
-
   backend:
     build:
       dockerfile: Dockerfile
+    environment:
+      - DBURL=postgres://postgres:postgres@db:5432/?sslmode=disable
     ports:
-      - 8080:8080
-
-    healthcheck:
-      test: ["CMD-SHELL", "curl", "localhost:8080/healtz"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - '8080:8080'
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+
   db:
     image: postgres:14.1-alpine
     environment:
@@ -24,13 +21,17 @@ services:
     volumes:
       - db:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready", "-d", "db_prod"]
+      test: ['CMD-SHELL', 'pg_isready', '-d', 'db_prod']
+      start_period: 10s
       interval: 30s
-      timeout: 60s
+      timeout: 1s
       retries: 5
-      start_period: 80s
 
 volumes:
   db:
-  node-modules:
     driver: local
+networks:
+  db:
+    internal: false
+  backend:
+    internal: false

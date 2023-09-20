@@ -17,7 +17,7 @@ func main() {
 
 	db.MigrateDB()
 
-	log.Printf("Server started")
+	log.Printf("server started.")
 
 	HealthCheckAPIService := openapi.NewHealthCheckAPIService()
 	HealthCheckAPIController := openapi.NewHealthCheckAPIController(HealthCheckAPIService)
