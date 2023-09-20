@@ -5,46 +5,45 @@
 package main
 
 import (
-	"database/sql"
 	"errors"
 	"log"
 	"net/http"
+	"time"
 
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
 
-	"github.com/nelsonstr/o801/config"
-	db0801 "github.com/nelsonstr/o801/db"
-	"github.com/nelsonstr/o801/internal"
-	server2 "github.com/nelsonstr/o801/internal/server"
+	o801db "github.com/nelsonstr/o801/db"
+	"github.com/nelsonstr/o801/internal/api"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 func main() {
 
-	dbc, err := sql.Open("postgres", config.DbURL())
-	if err != nil {
-		log.Fatalf("database error: %v", err)
-	}
+	dbc := o801db.InitDB()
 	defer func() { _ = dbc.Close() }()
 
-	db0801.MigrateDB()
+	router := api.NewRouter()
+	v1 := router.ApiVersion(1)
+	v1.Prefix("/auth").AuthEndpoints()
+	v1.Resources("/users").UserEndpoints()
 
-	server0801 := server2.NewServer(db0801.NewUserStorage(dbc))
+	v1.Resources("/docs").OpenAPI()
+
+	//server0801 := server2.NewServer(db0801.NewUserStorage(dbc))
 
 	log.Printf("start server.")
 
-	mux := internal.NewRouter(server0801)
+	//router := internal.NewRouter(server0801)
 
-	// publishing the openapi.yaml.
-	mux.Handle("/docs/", http.StripPrefix("/docs/", http.FileServer(http.Dir("api"))))
-
-	openApiUI(mux)
+	//openApiUI(router)
 
 	server := &http.Server{
-		Addr:    ":8080",
-		Handler: mux,
+		Addr:         ":8080",
+		Handler:      router,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
 	}
 
 	if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {

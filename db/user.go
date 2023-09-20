@@ -23,7 +23,7 @@ func NewUserStorage(db *sql.DB) *UserStorage {
 }
 
 // Create User with name
-func (u *UserStorage) Create(ctx context.Context, name string) (*models.User, error) {
+func (u *UserStorage) Create(_ context.Context, name string) (*models.User, error) {
 	// Prepare the SQL statement with placeholders
 	stmt, err := u.db.Prepare("INSERT INTO users (name) VALUES ($1)  RETURNING id")
 	if err != nil {
