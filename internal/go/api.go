@@ -1,4 +1,8 @@
 /*
+ license x
+*/
+
+/*
  * O801 API
  *
  * Create and Get User
@@ -16,9 +20,9 @@ import (
 
 // HealthCheckAPIRouter defines the required methods for binding the api requests to a responses for the HealthCheckAPI
 // The HealthCheckAPIRouter implementation should parse necessary information from the http request,
-// pass the data to a HealthCheckAPIServicer to perform the required actions, then write the service results to the http response.
+// pass the data to a HealthCheckAPIService to perform the required actions, then write the service results to the http response.
 type HealthCheckAPIRouter interface {
-	HealthzGet(http.ResponseWriter, *http.Request)
+	HealthGet(http.ResponseWriter, *http.Request)
 	LivenessGet(http.ResponseWriter, *http.Request)
 }
 
@@ -42,7 +46,7 @@ type ServicesAPIRouter interface {
 // while the service implementation can be ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
 type HealthCheckAPIServicer interface {
-	HealthzGet(context.Context) (ImplResponse, error)
+	HealthGet(context.Context) (ImplResponse, error)
 	LivenessGet(context.Context) (ImplResponse, error)
 }
 

@@ -1,14 +1,18 @@
+/*
+ license x
+*/
+
 package server
 
 import (
 	"encoding/json"
-	"github.com/nelsonstr/o801/db"
-	"github.com/nelsonstr/o801/models"
 	"net/http"
 	"strings"
 	"sync"
 
+	"github.com/nelsonstr/o801/db"
 	openapi "github.com/nelsonstr/o801/internal/go"
+	"github.com/nelsonstr/o801/models"
 )
 
 // Interface assertions.
@@ -50,11 +54,6 @@ func (s *Server) Routes() openapi.Routes {
 
 // GetUser gets the user from the storage.
 func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		s.errorHandler(w, r, &openapi.MethodNotAllowedError{}, nil)
-		return
-	}
-
 	idReq := struct {
 		ID int
 	}{}
@@ -69,7 +68,7 @@ func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	if u := s.userCache[int64(idReq.ID)]; u != models.NilUser {
 		b, _ := json.Marshal(u)
-		w.Write(b)
+		_, _ = w.Write(b)
 	}
 
 	user, err := s.service.Get(r.Context(), idReq.ID)
@@ -81,10 +80,10 @@ func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 	s.userCache[int64(idReq.ID)] = *user
 
 	b, _ := json.Marshal(user)
-	w.Write(b)
+	_, _ = w.Write(b)
 }
 
-// CreateUser creates a user in the database
+// GetOrCreateUser creates or get an user from storage
 func (s *Server) GetOrCreateUser(writer http.ResponseWriter, request *http.Request) {
 	if request.Method == "POST" {
 		s.CreateUser(writer, request)
@@ -93,30 +92,31 @@ func (s *Server) GetOrCreateUser(writer http.ResponseWriter, request *http.Reque
 		s.GetUser(writer, request)
 		return
 	} else {
-
+		s.errorHandler(writer, request, &openapi.MethodNotAllowedError{}, nil)
 	}
 }
-func (s *Server) CreateUser(writer http.ResponseWriter, request *http.Request) {
 
+// CreateUser create an user
+func (s *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
 	createUserReq := struct {
 		Name string
 	}{}
 
-	if err := json.NewDecoder(request.Body).Decode(&createUserReq); err != nil {
-		s.errorHandler(writer, request, &openapi.BadRequestError{}, nil)
+	if err := json.NewDecoder(r.Body).Decode(&createUserReq); err != nil {
+		s.errorHandler(w, r, &openapi.BadRequestError{}, nil)
 		return
 	}
 
-	user, err := s.service.Create(request.Context(), createUserReq.Name)
+	user, err := s.service.Create(r.Context(), createUserReq.Name)
 	if err != nil {
-		s.errorHandler(writer, request, &openapi.StorageError{Err: err}, nil)
+		s.errorHandler(w, r, &openapi.StorageError{Err: err}, nil)
 		return
 	}
 
 	s.userCache[user.ID] = *user
 
 	b, _ := json.Marshal(user)
-	writer.Write(b)
+	_, _ = w.Write(b)
 
 	return
 }

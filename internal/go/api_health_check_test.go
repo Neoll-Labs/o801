@@ -1,3 +1,7 @@
+/*
+ license x
+*/
+
 package openapi
 
 import (
@@ -15,15 +19,15 @@ type monitiringTest struct {
 	body string
 }
 
-func (m monitiringTest) HealthzGet(ctx context.Context) (ImplResponse, error) {
+func (m monitiringTest) HealthGet(_ context.Context) (ImplResponse, error) {
 	return Response(m.code, m.body), nil
 }
 
-func (m monitiringTest) LivenessGet(ctx context.Context) (ImplResponse, error) {
+func (m monitiringTest) LivenessGet(_ context.Context) (ImplResponse, error) {
 	return Response(m.code, m.body), nil
 }
 
-func TestHealthCheckAPIController_HealthzGet(t *testing.T) {
+func TestHealthCheckAPIController_HealthGet(t *testing.T) {
 	type fields struct {
 		service      HealthCheckAPIServicer
 		errorHandler ErrorHandler
@@ -78,7 +82,7 @@ func TestHealthCheckAPIController_HealthzGet(t *testing.T) {
 				service:      tt.fields.service,
 				errorHandler: tt.fields.errorHandler,
 			}
-			c.HealthzGet(tt.args.w, tt.args.r)
+			c.HealthGet(tt.args.w, tt.args.r)
 
 			assert.Equal(t, tt.output.code, tt.args.w.(*httptest.ResponseRecorder).Code)
 			assert.Contains(t, tt.args.w.(*httptest.ResponseRecorder).Body.String(), tt.output.bodyContains)
@@ -151,7 +155,7 @@ func TestHealthCheckAPIController_LivenessGet(t *testing.T) {
 
 func TestHealthEndpoint(t *testing.T) {
 	// Create a new HTTP request with the "/metric" endpoint
-	req, err := http.NewRequest("GET", "/healthz", nil)
+	req, err := http.NewRequest("GET", "/health", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -163,7 +167,7 @@ func TestHealthEndpoint(t *testing.T) {
 
 	// Create a new mock HTTP server
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(c.HealthzGet)
+	handler := http.HandlerFunc(c.HealthGet)
 	handler.ServeHTTP(rr, req)
 
 	// Check the response status code

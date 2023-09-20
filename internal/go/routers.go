@@ -1,4 +1,8 @@
 /*
+ license x
+*/
+
+/*
  * O801 API
  *
  * Create and Get User
@@ -11,9 +15,7 @@ package openapi
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
-	"strconv"
 )
 
 // A Route defines the parameters for an api endpoint
@@ -30,8 +32,6 @@ type Routes map[string]Route
 type Router interface {
 	Routes() Routes
 }
-
-const errMsgRequiredMissing = "required parameter is missing"
 
 // NewRouter creates a new router for any number of api routers
 func NewRouter(routers ...Router) *http.ServeMux {
@@ -71,46 +71,6 @@ type Number interface {
 
 type ParseString[T Number | string | bool] func(v string) (T, error)
 
-// parseFloat32 parses a string parameter to a float32.
-func parseFloat32(param string) (float32, error) {
-	if param == "" {
-		return 0, nil
-	}
-
-	v, err := strconv.ParseFloat(param, 32)
-	return float32(v), err
-}
-
 type Operation[T Number | string | bool] func(actual string) (T, bool, error)
 
-func WithRequire[T Number | string | bool](parse ParseString[T]) Operation[T] {
-	var empty T
-	return func(actual string) (T, bool, error) {
-		if actual == "" {
-			return empty, false, errors.New(errMsgRequiredMissing)
-		}
-
-		v, err := parse(actual)
-		return v, false, err
-	}
-}
-
 type Constraint[T Number | string | bool] func(actual T) error
-
-// parseNumericParameter parses a numeric parameter to its respective type.
-func parseNumericParameter[T Number](param string, fn Operation[T], checks ...Constraint[T]) (T, error) {
-	v, ok, err := fn(param)
-	if err != nil {
-		return 0, err
-	}
-
-	if !ok {
-		for _, check := range checks {
-			if err := check(v); err != nil {
-				return 0, err
-			}
-		}
-	}
-
-	return v, nil
-}

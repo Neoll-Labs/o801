@@ -1,4 +1,8 @@
 /*
+ license x
+*/
+
+/*
  * O801 API
  *
  * Create and Get User
@@ -10,14 +14,14 @@
 package openapi
 
 import (
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
 	"strings"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // MonitoringAPIController binds http requests to an api service and writes the service results to the http response
 type MonitoringAPIController struct {
-	service      MonitoringAPIServicer
 	errorHandler ErrorHandler
 }
 
@@ -32,9 +36,8 @@ func WithMonitoringAPIErrorHandler(h ErrorHandler) MonitoringAPIOption {
 }
 
 // NewMonitoringAPIController creates a default api controller
-func NewMonitoringAPIController(s MonitoringAPIServicer, opts ...MonitoringAPIOption) Router {
+func NewMonitoringAPIController(opts ...MonitoringAPIOption) Router {
 	controller := &MonitoringAPIController{
-		service:      s,
 		errorHandler: DefaultErrorHandler,
 	}
 

@@ -1,4 +1,8 @@
 /*
+ license x
+*/
+
+/*
  * O801 API
  *
  * Create and Get User
@@ -23,13 +27,6 @@ type HealthCheckAPIController struct {
 // HealthCheckAPIOption for how the controller is set up.
 type HealthCheckAPIOption func(*HealthCheckAPIController)
 
-// WithHealthCheckAPIErrorHandler inject ErrorHandler into controller
-func WithHealthCheckAPIErrorHandler(h ErrorHandler) HealthCheckAPIOption {
-	return func(c *HealthCheckAPIController) {
-		c.errorHandler = h
-	}
-}
-
 // NewHealthCheckAPIController creates a default api controller
 func NewHealthCheckAPIController(s HealthCheckAPIServicer, opts ...HealthCheckAPIOption) Router {
 	controller := &HealthCheckAPIController{
@@ -47,10 +44,10 @@ func NewHealthCheckAPIController(s HealthCheckAPIServicer, opts ...HealthCheckAP
 // Routes returns all the api routes for the HealthCheckAPIController
 func (c *HealthCheckAPIController) Routes() Routes {
 	return Routes{
-		"HealthzGet": Route{
+		"HealthGet": Route{
 			strings.ToUpper("Get"),
-			"/healthz",
-			c.HealthzGet,
+			"/health",
+			c.HealthGet,
 		},
 		"LivenessGet": Route{
 			strings.ToUpper("Get"),
@@ -60,16 +57,17 @@ func (c *HealthCheckAPIController) Routes() Routes {
 	}
 }
 
-// HealthzGet - Returns the health of the service.
-func (c *HealthCheckAPIController) HealthzGet(w http.ResponseWriter, r *http.Request) {
-	result, err := c.service.HealthzGet(r.Context())
+// HealthGet - Returns the health of the service.
+func (c *HealthCheckAPIController) HealthGet(w http.ResponseWriter, r *http.Request) {
+	result, err := c.service.HealthGet(r.Context())
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
 		return
 	}
+
 	// If no error, encode the body and the result code
-	EncodeJSONResponse(result.Body, &result.Code, w)
+	_ = EncodeJSONResponse(result.Body, &result.Code, w)
 }
 
 // LivenessGet - Returns whether it is currently operational and responsive.
@@ -80,6 +78,7 @@ func (c *HealthCheckAPIController) LivenessGet(w http.ResponseWriter, r *http.Re
 		c.errorHandler(w, r, err, &result)
 		return
 	}
+
 	// If no error, encode the body and the result code
-	EncodeJSONResponse(result.Body, &result.Code, w)
+	_ = EncodeJSONResponse(result.Body, &result.Code, w)
 }

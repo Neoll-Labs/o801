@@ -1,3 +1,7 @@
+/*
+ license x
+*/
+
 package db
 
 import (
@@ -24,7 +28,7 @@ func (u *UserStorage) Create(ctx context.Context, name string) (*models.User, er
 	if err != nil {
 		return &models.NilUser, err
 	}
-	defer stmt.Close()
+	defer func() { _ = stmt.Close() }()
 
 	// Start a transaction
 	tx, err := u.db.Begin()
@@ -37,7 +41,7 @@ func (u *UserStorage) Create(ctx context.Context, name string) (*models.User, er
 	err = tx.Stmt(stmt).QueryRow(name).Scan(&insertedID)
 	if err != nil {
 		// Rollback the transaction if an error occurs
-		tx.Rollback()
+		_ = tx.Rollback()
 		return &models.NilUser, err
 	}
 
@@ -48,20 +52,20 @@ func (u *UserStorage) Create(ctx context.Context, name string) (*models.User, er
 	return &models.User{ID: int64(insertedID), Name: name}, nil
 }
 
-func (u *UserStorage) Get(ctx context.Context, id int) (*models.User, error) {
+func (u *UserStorage) Get(_ context.Context, id int) (*models.User, error) {
 	// Prepare the SQL statement with placeholders
 	stmt, err := u.db.Prepare("select * from users where id = $1")
 	if err != nil {
 		return &models.NilUser, err
 	}
-	defer stmt.Close()
+	defer func() { _ = stmt.Close() }()
 
 	// Start a transaction
 	tx, err := u.db.Begin()
 	if err != nil {
 		return &models.NilUser, err
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	user := &models.User{}
 

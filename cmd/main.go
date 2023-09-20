@@ -1,9 +1,12 @@
+/*
+ license x
+*/
+
 package main
 
 import (
 	"database/sql"
 	"errors"
-	"github.com/nelsonstr/o801/db"
 	"log"
 	"net/http"
 
@@ -13,29 +16,28 @@ import (
 
 	db0801 "github.com/nelsonstr/o801/db"
 	openapi "github.com/nelsonstr/o801/internal/go"
-	server2 "github.com/nelsonstr/o801/server"
+	server2 "github.com/nelsonstr/o801/internal/server"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 func main() {
 
-	db, err := sql.Open("postgres", db.DbURL())
+	dbc, err := sql.Open("postgres", db0801.DbURL())
 	if err != nil {
 		log.Fatalf("database error: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = dbc.Close() }()
 
 	db0801.MigrateDB()
 
-	server0801 := server2.NewServer(db0801.NewUserStorage(db))
+	server0801 := server2.NewServer(db0801.NewUserStorage(dbc))
 
 	log.Printf("start server.")
 
-	HealthCheckAPIService := openapi.NewHealthCheckAPIService(db)
+	HealthCheckAPIService := openapi.NewHealthCheckAPIService(dbc)
 	HealthCheckAPIController := openapi.NewHealthCheckAPIController(HealthCheckAPIService)
 
-	MonitoringAPIService := openapi.NewMonitoringAPIService()
-	MonitoringAPIController := openapi.NewMonitoringAPIController(MonitoringAPIService)
+	MonitoringAPIController := openapi.NewMonitoringAPIController()
 
 	mux := openapi.NewRouter(server0801, HealthCheckAPIController, MonitoringAPIController)
 

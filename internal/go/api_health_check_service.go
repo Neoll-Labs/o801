@@ -1,4 +1,8 @@
 /*
+ license x
+*/
+
+/*
  * O801 API
  *
  * Create and Get User
@@ -15,22 +19,22 @@ import (
 	"net/http"
 )
 
-// HealthCheckAPIService is a service that implements the logic for the HealthCheckAPIServicer
+// HealthCheckAPIService is a service that implements the logic for the HealthCheckAPIService
 // This service should implement the business logic for every endpoint for the HealthCheckAPI API.
 // Include any external packages or services that will be required by this service.
 type HealthCheckAPIService struct {
 	db *sql.DB
 }
 
-// NewHealthCheckAPIService creates a default api service
+// NewHealthCheckAPIService creates a default api service.
 func NewHealthCheckAPIService(db *sql.DB) HealthCheckAPIServicer {
 	return &HealthCheckAPIService{
 		db: db,
 	}
 }
 
-// HealthzGet - Returns the health of the service.
-func (s *HealthCheckAPIService) HealthzGet(ctx context.Context) (ImplResponse, error) {
+// HealthGet - Returns the health of the service.
+func (s *HealthCheckAPIService) HealthGet(_ context.Context) (ImplResponse, error) {
 	if err := s.db.Ping(); err != nil {
 		return Response(http.StatusServiceUnavailable, nil), nil
 	}
@@ -39,6 +43,6 @@ func (s *HealthCheckAPIService) HealthzGet(ctx context.Context) (ImplResponse, e
 }
 
 // LivenessGet - Returns whether it is currently operational and responsive.
-func (s *HealthCheckAPIService) LivenessGet(ctx context.Context) (ImplResponse, error) {
+func (s *HealthCheckAPIService) LivenessGet(_ context.Context) (ImplResponse, error) {
 	return Response(http.StatusOK, nil), nil
 }

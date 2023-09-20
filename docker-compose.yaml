@@ -4,9 +4,9 @@ services:
     build:
       dockerfile: Dockerfile
     environment:
-      - DBURL=postgres://postgres:postgres@db:5432/?sslmode=disable
+    - DBURL=postgres://postgres:postgres@db:5432/?sslmode=disable
     ports:
-      - '8080:8080'
+    - 8080:8080
     depends_on:
       db:
         condition: service_healthy
@@ -14,14 +14,14 @@ services:
   db:
     image: postgres:14.1-alpine
     environment:
-      - PGUSER=postgres
-      - PGPASSWORD=postgres
+    - PGUSER=postgres
+    - PGPASSWORD=postgres
     ports:
-        - '5432:5432'
+    - 5432:5432
     volumes:
-      - db:/var/lib/postgresql/data
+    - db:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready', '-d', 'db_prod']
+      test: [CMD-SHELL, pg_isready, -d, db_prod]
       start_period: 10s
       interval: 30s
       timeout: 1s

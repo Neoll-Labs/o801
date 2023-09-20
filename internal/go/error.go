@@ -1,4 +1,8 @@
 /*
+ license x
+*/
+
+/*
  * O801 API
  *
  * Create and Get User
@@ -76,22 +80,22 @@ type ErrorHandler func(w http.ResponseWriter, r *http.Request, err error, result
 
 // DefaultErrorHandler defines the default logic on how to handle errors from the controller. Any errors from parsing
 // request params will return a StatusBadRequest. Otherwise, the error code originating from the servicer will be used.
-func DefaultErrorHandler(w http.ResponseWriter, r *http.Request, err error, result *ImplResponse) {
+func DefaultErrorHandler(w http.ResponseWriter, _ *http.Request, err error, result *ImplResponse) {
 	if _, ok := err.(*ParsingError); ok {
 		// Handle parsing errors
 		log.Println(err.Error())
-		EncodeJSONResponse(nil, func(i int) *int { return &i }(http.StatusBadRequest), w)
+		_ = EncodeJSONResponse(nil, func(i int) *int { return &i }(http.StatusBadRequest), w)
 	} else if _, ok := err.(*RequiredError); ok {
 		// Handle missing required errors
 		log.Println(err.Error())
-		EncodeJSONResponse(err.Error(), func(i int) *int { return &i }(http.StatusUnprocessableEntity), w)
+		_ = EncodeJSONResponse(err.Error(), func(i int) *int { return &i }(http.StatusUnprocessableEntity), w)
 	} else if _, ok := err.(*MethodNotAllowedError); ok {
 		// Handle method not allowed errors
 		log.Println(err.Error())
-		EncodeJSONResponse(nil, func(i int) *int { return &i }(http.StatusMethodNotAllowed), w)
+		_ = EncodeJSONResponse(nil, func(i int) *int { return &i }(http.StatusMethodNotAllowed), w)
 	} else {
 		// Handle all other errors
 		log.Println(err.Error())
-		EncodeJSONResponse(nil, &result.Code, w)
+		_ = EncodeJSONResponse(nil, &result.Code, w)
 	}
 }

@@ -1,3 +1,7 @@
+/*
+ license x
+*/
+
 package openapi
 
 import (
@@ -6,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	_ "github.com/nelsonstr/o801/internal/monitoring"
+	_ "github.com/nelsonstr/o801/monitoring"
 )
 
 func TestMetricEndpoint(t *testing.T) {
