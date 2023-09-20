@@ -6,12 +6,14 @@ package server
 
 import (
 	"encoding/json"
+	"github.com/nelsonstr/o801/internal"
+	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 
 	"github.com/nelsonstr/o801/db"
-	openapi "github.com/nelsonstr/o801/internal/go"
 	"github.com/nelsonstr/o801/models"
 )
 
@@ -23,10 +25,9 @@ var (
 
 func NewServer(service db.CRService[*models.User]) *Server {
 	return &Server{
-		Mutex:        sync.Mutex{},
-		userCache:    make(map[int64]models.User),
-		service:      service,
-		errorHandler: nil,
+		Mutex:     sync.Mutex{},
+		userCache: make(map[int64]models.User),
+		service:   service,
 	}
 }
 
@@ -34,18 +35,16 @@ type Server struct {
 	sync.Mutex
 	userCache    map[int64]models.User
 	service      db.CRService[*models.User]
-	errorHandler openapi.ErrorHandler
+	errorHandler internal.ErrorHandler
 }
 
-func (s *Server) Routes() openapi.Routes {
-	return openapi.Routes{
-		"GetOrCreateUser": openapi.Route{
-			strings.ToUpper("Post"),
+func (s *Server) Routes() internal.Routes {
+	return internal.Routes{
+		"GetOrCreateUser": internal.Route{
 			"/users",
 			s.GetOrCreateUser,
 		},
-		"GetUser": openapi.Route{
-			strings.ToUpper("Get"),
+		"GetUser": internal.Route{
 			"/users/",
 			s.GetUser,
 		},
@@ -58,9 +57,20 @@ func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 		ID int
 	}{}
 
-	if err := json.NewDecoder(r.Body).Decode(&idReq); err != nil {
-		s.errorHandler(w, r, &openapi.BadRequestError{}, nil)
+	err := json.NewDecoder(r.Body).Decode(&idReq)
+	if err != nil && err != io.EOF {
+		s.errorHandler(w, r, &internal.BadRequestError{}, nil)
 		return
+	}
+
+	// empty body, check if is path parameter
+	if err == io.EOF {
+		p := strings.Split(r.URL.String(), "/")
+		if len(p) < 3 {
+			s.errorHandler(w, r, &internal.BadRequestError{}, nil)
+			return
+		}
+		idReq.ID, _ = strconv.Atoi(p[2])
 	}
 
 	s.Mutex.Lock()
@@ -69,11 +79,13 @@ func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 	if u := s.userCache[int64(idReq.ID)]; u != models.NilUser {
 		b, _ := json.Marshal(u)
 		_, _ = w.Write(b)
+
+		return
 	}
 
 	user, err := s.service.Get(r.Context(), idReq.ID)
 	if err != nil {
-		s.errorHandler(w, r, &openapi.StorageError{Err: err}, nil)
+		s.errorHandler(w, r, &internal.StorageError{Err: err}, nil)
 		return
 	}
 
@@ -92,24 +104,24 @@ func (s *Server) GetOrCreateUser(writer http.ResponseWriter, request *http.Reque
 		s.GetUser(writer, request)
 		return
 	} else {
-		s.errorHandler(writer, request, &openapi.MethodNotAllowedError{}, nil)
+		s.errorHandler(writer, request, &internal.MethodNotAllowedError{}, nil)
 	}
 }
 
-// CreateUser create an user
+// CreateUser create user
 func (s *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
 	createUserReq := struct {
 		Name string
 	}{}
 
 	if err := json.NewDecoder(r.Body).Decode(&createUserReq); err != nil {
-		s.errorHandler(w, r, &openapi.BadRequestError{}, nil)
+		s.errorHandler(w, r, &internal.BadRequestError{}, nil)
 		return
 	}
 
 	user, err := s.service.Create(r.Context(), createUserReq.Name)
 	if err != nil {
-		s.errorHandler(w, r, &openapi.StorageError{Err: err}, nil)
+		s.errorHandler(w, r, &internal.StorageError{Err: err}, nil)
 		return
 	}
 

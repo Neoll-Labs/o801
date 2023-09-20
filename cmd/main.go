@@ -14,15 +14,16 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
 
+	"github.com/nelsonstr/o801/config"
 	db0801 "github.com/nelsonstr/o801/db"
-	openapi "github.com/nelsonstr/o801/internal/go"
+	"github.com/nelsonstr/o801/internal"
 	server2 "github.com/nelsonstr/o801/internal/server"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 func main() {
 
-	dbc, err := sql.Open("postgres", db0801.DbURL())
+	dbc, err := sql.Open("postgres", config.DbURL())
 	if err != nil {
 		log.Fatalf("database error: %v", err)
 	}
@@ -34,12 +35,7 @@ func main() {
 
 	log.Printf("start server.")
 
-	HealthCheckAPIService := openapi.NewHealthCheckAPIService(dbc)
-	HealthCheckAPIController := openapi.NewHealthCheckAPIController(HealthCheckAPIService)
-
-	MonitoringAPIController := openapi.NewMonitoringAPIController()
-
-	mux := openapi.NewRouter(server0801, HealthCheckAPIController, MonitoringAPIController)
+	mux := internal.NewRouter(server0801)
 
 	// publishing the openapi.yaml.
 	mux.Handle("/docs/", http.StripPrefix("/docs/", http.FileServer(http.Dir("api"))))
