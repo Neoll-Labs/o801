@@ -157,7 +157,7 @@ func TestHealthEndpoint(t *testing.T) {
 	}
 
 	c := &HealthCheckAPIController{
-		service:      NewHealthCheckAPIService(),
+		service:      NewHealthCheckAPIService(nil),
 		errorHandler: DefaultErrorHandler,
 	}
 
@@ -189,7 +189,7 @@ func TestLivenessEndpoint(t *testing.T) {
 	}
 
 	c := &HealthCheckAPIController{
-		service:      NewHealthCheckAPIService(),
+		service:      NewHealthCheckAPIService(nil),
 		errorHandler: DefaultErrorHandler,
 	}
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"errors"
 	"github.com/nelsonstr/o801/db"
 	"log"
@@ -8,27 +9,35 @@ import (
 
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/lib/pq"
 
-	openapi "github.com/nelsonstr/o801/pkg/go"
+	db0801 "github.com/nelsonstr/o801/db"
+	openapi "github.com/nelsonstr/o801/internal/go"
+	server2 "github.com/nelsonstr/o801/server"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 func main() {
 
-	db.MigrateDB()
+	db, err := sql.Open("postgres", db.DbURL())
+	if err != nil {
+		log.Fatalf("database error: %v", err)
+	}
+	defer db.Close()
 
-	log.Printf("server started.")
+	db0801.MigrateDB()
 
-	HealthCheckAPIService := openapi.NewHealthCheckAPIService()
+	server0801 := server2.NewServer(db0801.NewUserStorage(db))
+
+	log.Printf("start server.")
+
+	HealthCheckAPIService := openapi.NewHealthCheckAPIService(db)
 	HealthCheckAPIController := openapi.NewHealthCheckAPIController(HealthCheckAPIService)
 
 	MonitoringAPIService := openapi.NewMonitoringAPIService()
 	MonitoringAPIController := openapi.NewMonitoringAPIController(MonitoringAPIService)
 
-	ServicesAPIService := openapi.NewServicesAPIService()
-	ServicesAPIController := openapi.NewServicesAPIController(ServicesAPIService)
-
-	mux := openapi.NewRouter(HealthCheckAPIController, MonitoringAPIController, ServicesAPIController)
+	mux := openapi.NewRouter(server0801, HealthCheckAPIController, MonitoringAPIController)
 
 	// publishing the openapi.yaml.
 	mux.Handle("/docs/", http.StripPrefix("/docs/", http.FileServer(http.Dir("api"))))

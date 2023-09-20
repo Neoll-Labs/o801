@@ -1,5 +1,5 @@
 CREATE TABLE users
 (
-    id integer unique,
+    id SERIAL PRIMARY KEY,
     name    varchar(40)
 );

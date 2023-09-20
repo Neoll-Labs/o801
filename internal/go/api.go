@@ -31,9 +31,9 @@ type MonitoringAPIRouter interface {
 
 // ServicesAPIRouter defines the required methods for binding the api requests to a responses for the ServicesAPI
 // The ServicesAPIRouter implementation should parse necessary information from the http request,
-// pass the data to a ServicesAPIServicer to perform the required actions, then write the service results to the http response.
+// pass the data to a UserAPIService to perform the required actions, then write the service results to the http response.
 type ServicesAPIRouter interface {
-	CreateUser(http.ResponseWriter, *http.Request)
+	GetOrCreateUser(http.ResponseWriter, *http.Request)
 	GetUser(http.ResponseWriter, *http.Request)
 }
 
@@ -54,11 +54,11 @@ type MonitoringAPIServicer interface {
 	MetricsGet(context.Context) (ImplResponse, error)
 }
 
-// ServicesAPIServicer defines the api actions for the ServicesAPI service
+// UserAPIService defines the api actions for the ServicesAPI service
 // This interface intended to stay up to date with the openapi yaml used to generate it,
 // while the service implementation can be ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
-type ServicesAPIServicer interface {
+type UserAPIService interface {
 	CreateUser(context.Context, string) (ImplResponse, error)
-	GetUser(context.Context, float32) (ImplResponse, error)
+	GetUser(context.Context, int) (ImplResponse, error)
 }

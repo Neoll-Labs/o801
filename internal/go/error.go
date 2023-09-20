@@ -43,6 +43,15 @@ func (e *MethodNotAllowedError) Error() string {
 	return e.Err.Error()
 }
 
+// StorageError indicates that an error has occurred when parsing request parameters
+type StorageError struct {
+	Err error
+}
+
+func (e *StorageError) Error() string {
+	return e.Err.Error()
+}
+
 // MethodNotAllowedError indicates that an error has occurred when parsing request parameters
 type BadRequestError struct {
 	Err error

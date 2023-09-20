@@ -11,6 +11,7 @@ package openapi
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 )
 
@@ -18,18 +19,23 @@ import (
 // This service should implement the business logic for every endpoint for the HealthCheckAPI API.
 // Include any external packages or services that will be required by this service.
 type HealthCheckAPIService struct {
+	db *sql.DB
 }
 
 // NewHealthCheckAPIService creates a default api service
-func NewHealthCheckAPIService() HealthCheckAPIServicer {
-	return &HealthCheckAPIService{}
+func NewHealthCheckAPIService(db *sql.DB) HealthCheckAPIServicer {
+	return &HealthCheckAPIService{
+		db: db,
+	}
 }
 
 // HealthzGet - Returns the health of the service.
 func (s *HealthCheckAPIService) HealthzGet(ctx context.Context) (ImplResponse, error) {
-	//TODO check the db connection
+	if err := s.db.Ping(); err != nil {
+		return Response(http.StatusServiceUnavailable, nil), nil
+	}
 
-	return Response(http.StatusNotImplemented, nil), nil
+	return Response(http.StatusOK, nil), nil
 }
 
 // LivenessGet - Returns whether it is currently operational and responsive.
