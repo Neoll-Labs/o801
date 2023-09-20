@@ -2,14 +2,21 @@ package main
 
 import (
 	"errors"
+	"github.com/nelsonstr/o801/db"
 	"log"
 	"net/http"
 
-	openapi "github.com/nelsonstr/o801/go"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+
+	openapi "github.com/nelsonstr/o801/pkg/go"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 func main() {
+
+	db.MigrateDB()
+
 	log.Printf("Server started")
 
 	HealthCheckAPIService := openapi.NewHealthCheckAPIService()
@@ -23,7 +30,7 @@ func main() {
 
 	mux := openapi.NewRouter(HealthCheckAPIController, MonitoringAPIController, ServicesAPIController)
 
-	// publishing the openapi.yaml
+	// publishing the openapi.yaml.
 	mux.Handle("/docs/", http.StripPrefix("/docs/", http.FileServer(http.Dir("api"))))
 
 	openApiUI(mux)
@@ -34,12 +41,12 @@ func main() {
 	}
 
 	if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-		// Error starting or closing listener:
+		// Error starting or closing listener.
 		log.Fatalf("HTTP server ListenAndServe: %v", err)
 	}
 }
 
-// openApiUI add swagger UI for demo proposal only
+// openApiUI add swagger UI for demo proposal only.
 func openApiUI(router *http.ServeMux) {
 	router.HandleFunc("/swagger/", httpSwagger.Handler(
 		httpSwagger.URL("http://127.0.0.1:8080/docs/openapi.yaml"), //The url pointing to API definition
