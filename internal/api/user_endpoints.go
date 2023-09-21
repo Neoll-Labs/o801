@@ -7,6 +7,6 @@ import (
 
 func (r *Router) UserEndpoints(s *server.Server) {
 
-	r.Endpoint(http.MethodGet, "/\\d+", s.GetUser)
+	r.Endpoint(http.MethodGet, "/(\\d+)+", s.GetUser)
 	r.Endpoint(http.MethodPost, "/", s.CreateUser)
 }

@@ -1,11 +1,13 @@
 package api
 
 import (
-	"github.com/nelsonstr/o801/internal/log"
-	"github.com/nelsonstr/o801/internal/monitoring"
+	"context"
 	"net/http"
 	"regexp"
 	"strconv"
+
+	"github.com/nelsonstr/o801/internal/log"
+	"github.com/nelsonstr/o801/internal/monitoring"
 )
 
 type Route struct {
@@ -38,7 +40,11 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			continue
 		}
 
+		matches := route.Patterns.FindStringSubmatch(req.URL.Path)
+		req.WithContext(context.WithValue(req.Context(), "params", matches))
+
 		route.Handler.ServeHTTP(w, req)
+
 		return
 	}
 
@@ -61,10 +67,7 @@ func (r *Router) Resource(name string) *Router {
 }
 
 func (r *Router) Endpoint(method, path string, h http.HandlerFunc) {
-	compiled, err := regexp.Compile("^" + r.prefix + r.resource + path + "$")
-	if err != nil {
-		panic(err)
-	}
+	compiled := regexp.MustCompile("^" + r.prefix + r.resource + path + "$")
 
 	r.routes = append(r.routes, Route{
 
