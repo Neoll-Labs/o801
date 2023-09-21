@@ -23,9 +23,10 @@ var (
 
 func NewServer(service db.CRService[*models.User]) *Server {
 	return &Server{
-		Mutex:     sync.Mutex{},
-		userCache: make(map[int64]models.User),
-		service:   service,
+		Mutex:        sync.Mutex{},
+		userCache:    make(map[int64]models.User),
+		service:      service,
+		errorHandler: internal.DefaultErrorHandler,
 	}
 }
 
@@ -63,6 +64,10 @@ func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 	user, err := s.service.Get(r.Context(), id)
 	if err != nil {
 		s.errorHandler(w, r, &internal.StorageError{Err: err}, nil)
+		return
+	}
+	if user == &models.NilUser {
+		s.errorHandler(w, r, &internal.NotFoundError{}, nil)
 		return
 	}
 

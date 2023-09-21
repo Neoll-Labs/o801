@@ -65,6 +65,15 @@ func (e *RequiredError) Error() string {
 	return fmt.Sprintf("required field '%s' is zero value.", e.Field)
 }
 
+// StorageError indicates that an error has occurred when parsing request parameters
+type NotFoundError struct {
+	Err error
+}
+
+func (e *NotFoundError) Error() string {
+	return e.Err.Error()
+}
+
 // ErrorHandler defines the required method for handling error. You may implement it and inject this into a controller if
 type ErrorHandler func(w http.ResponseWriter, r *http.Request, err error, result *ImplResponse)
 
@@ -82,6 +91,9 @@ func DefaultErrorHandler(w http.ResponseWriter, _ *http.Request, err error, resu
 		// Handle method not allowed errors
 		log.Println(err.Error())
 		_ = EncodeJSONResponse(func(i int) *int { return &i }(http.StatusMethodNotAllowed), w)
+	} else if _, ok := err.(*NotFoundError); ok {
+		// Handle method not allowed errors
+		_ = EncodeJSONResponse(func(i int) *int { return &i }(http.StatusNotFound), w)
 	} else {
 		// Handle all other errors
 		log.Println(err.Error())

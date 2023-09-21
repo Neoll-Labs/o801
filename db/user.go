@@ -73,6 +73,9 @@ func (u *UserStorage) Get(_ context.Context, id int) (*models.User, error) {
 
 	err = tx.Stmt(stmt).QueryRow(id).Scan(&user.ID, &user.Name)
 	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			return &models.NilUser, nil
+		}
 		return &models.NilUser, err
 	}
 
