@@ -1,47 +1,76 @@
 package api
 
 import (
-	"net/http"
-	"strconv"
-
 	"github.com/nelsonstr/o801/internal/log"
 	"github.com/nelsonstr/o801/internal/monitoring"
+	"net/http"
+	"regexp"
+	"strconv"
 )
 
-type router struct {
-	*http.ServeMux
+type Route struct {
+	Method   string
+	Handler  http.HandlerFunc
+	Patterns *regexp.Regexp
 }
 
-func NewRouter() *router {
-	return &router{
-		http.NewServeMux(),
+type Router struct {
+	Mux      *http.ServeMux
+	routes   []Route
+	prefix   string
+	resource string
+}
+
+func NewRouter() *Router {
+	return &Router{
+		Mux:    http.NewServeMux(),
+		routes: []Route{},
 	}
 }
 
-func (r *router) Prefix(path string) *router {
-	mux := NewRouter()
-	var handler http.Handler = mux
+func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	for _, route := range r.routes {
+		if req.Method != route.Method {
+			continue
+		}
 
-	r.Handle(path+"/", http.StripPrefix(path, handler))
+		if !route.Patterns.MatchString(req.URL.Path) {
+			continue
+		}
 
-	return mux
+		route.Handler.ServeHTTP(w, req)
+		return
+	}
+
+	http.NotFound(w, req)
 }
 
-func (r *router) Resources(s string) *router {
-	mux := NewRouter()
-	var handler http.Handler = mux
-
-	r.Handle(s+"/", monitoring.PrometheusMiddleware(http.StripPrefix(s, handler)))
-
-	return mux
-}
-
-func (r *router) ApiVersion(v int) *router {
-	mux := NewRouter()
-	var handler http.Handler = mux
-
+func (r *Router) Version(v int) *Router {
 	vPath := "/api/v" + strconv.Itoa(v)
-	r.Handle(vPath+"/", log.Logger(http.StripPrefix(vPath, handler)))
+	r.Mux.Handle(vPath+"/", log.Logger(http.StripPrefix(vPath, r.Mux)))
+	r.prefix = vPath
 
-	return mux
+	return r
+}
+
+func (r *Router) Resource(name string) *Router {
+	r.Mux.Handle(name+"/", monitoring.PrometheusMiddleware(http.StripPrefix(name, r.Mux)))
+	r.resource = name
+
+	return r
+}
+
+func (r *Router) Endpoint(method, path string, h http.HandlerFunc) {
+	compiled, err := regexp.Compile("^" + r.prefix + r.resource + path + "$")
+	if err != nil {
+		panic(err)
+	}
+
+	r.routes = append(r.routes, Route{
+
+		Patterns: compiled,
+		Method:   method,
+		Handler:  h,
+	})
+
 }

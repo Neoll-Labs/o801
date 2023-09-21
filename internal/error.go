@@ -88,3 +88,15 @@ func DefaultErrorHandler(w http.ResponseWriter, _ *http.Request, err error, resu
 		_ = EncodeJSONResponse(&result.Code, w)
 	}
 }
+
+// EncodeJSONResponse uses the json encoder to write an interface to the http response with an optional status code
+func EncodeJSONResponse(status *int, w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	if status != nil {
+		w.WriteHeader(*status)
+	} else {
+		w.WriteHeader(http.StatusOK)
+	}
+
+	return nil
+}

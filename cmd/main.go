@@ -6,6 +6,7 @@ package main
 
 import (
 	"errors"
+	server2 "github.com/nelsonstr/o801/internal/server"
 	"log"
 	"net/http"
 	"time"
@@ -20,17 +21,15 @@ func main() {
 
 	dbc := o801db.InitDB()
 	defer func() { _ = dbc.Close() }()
+	server0801 := server2.NewServer(o801db.NewUserStorage(dbc))
 
 	router := api.NewRouter()
+
 	router.Metrics()
 
-	v1 := router.ApiVersion(1)
-	v1.SwaggerUI()
-	v1.Prefix("/docs").OpenAPI()
-	v1.Prefix("/auth").AuthEndpoints()
-	v1.Resources("/users").UserEndpoints()
+	v1 := router.Version(1)
 
-	//server0801 := server2.NewServer(db0801.NewUserStorage(dbc))
+	v1.Resource("/users").UserEndpoints(server0801)
 
 	log.Printf("start server.")
 

@@ -1,13 +1,12 @@
 package api
 
 import (
+	"github.com/nelsonstr/o801/internal/server"
 	"net/http"
 )
 
-func (r *router) UserEndpoints() {
+func (r *Router) UserEndpoints(s *server.Server) {
 
-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write([]byte("john doe"))
-	})
-
+	r.Endpoint(http.MethodGet, "/\\d+", s.GetUser)
+	r.Endpoint(http.MethodPost, "/", s.CreateUser)
 }
