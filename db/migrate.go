@@ -43,21 +43,22 @@ func MigrateDB(db DBInterface) {
 	log.Printf("end migration.")
 }
 
-func (m *migrate) executeTablesScripts() {
+func (m *migrate) executeTablesScripts() error {
 	tx, err := m.db.Begin()
 	if err != nil {
-		return
+		return err
 	}
 	defer func() { _ = tx.Rollback() }()
 
 	for _, query := range m.queries {
+		log.Printf("Executing query: %s", query)
 		_, err := tx.Exec(query)
 		if err != nil {
-			log.Println(err)
-			return
+			return err
 		}
 	}
 	_ = tx.Commit()
+	return nil
 }
 
 type Column struct {
@@ -87,15 +88,11 @@ func (m *migrate) createTableScript(model any) {
 	mod := processStruct(model)
 	var cols []string
 	for i := 0; i < len(mod.Columns); i++ {
-		if mod.Columns[i].Types == "" {
-			continue
-		}
 		cols = append(cols, fmt.Sprintf("%s %s  ", mod.Columns[i].Name, mod.Columns[i].Types))
 	}
 	m.Query = fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (%s);", mod.Name, strings.Join(cols, ", "))
 
 	m.queries = append(m.queries, m.Query)
-
 }
 
 func processStruct(model any) *Table {
@@ -112,13 +109,15 @@ func processStruct(model any) *Table {
 		var col Column
 
 		col.Name = typ.Field(i).Name
+		if typ.Field(i).Tag.Get("sql") == "" {
+			continue
+		}
 		attr := readTags(typ.Field(i).Tag.Get("sql"))
 
 		tbl.Values[col.Name] = value.Field(i)
 		if slice, typeOk := attr["type"]; typeOk {
 			col.Types = strings.Join(slice, " ")
 		}
-
 		//TODO relationships and other types of columns
 
 		tbl.Columns = append(tbl.Columns, col)
@@ -128,7 +127,10 @@ func processStruct(model any) *Table {
 }
 
 func getTableName(typ reflect.Type) string {
+	if typ == nil {
+		return ""
+	}
 	n := strings.Split(typ.String(), ".")
 
-	return strings2.Plural(n[len(n)-1])
+	return strings.ToLower(strings2.Plural(n[len(n)-1]))
 }

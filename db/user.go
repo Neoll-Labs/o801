@@ -6,17 +6,16 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"github.com/nelsonstr/o801/models"
 )
 
 type UserStorage struct {
-	db *sql.DB
+	db DBInterface
 }
 
 var _ CRService[*models.User] = (*UserStorage)(nil)
 
-func NewUserStorage(db *sql.DB) *UserStorage {
+func NewUserStorage(db DBInterface) *UserStorage {
 	return &UserStorage{
 		db: db,
 	}

@@ -3,59 +3,108 @@ package db
 import (
 	"database/sql"
 	"errors"
+	"log"
+	"reflect"
 	"testing"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 )
 
-// MockDB is a mock implementation of the database/sql.DB interface for testing.
-type MockDB struct {
-	PrepareFunc func(query string) (*sql.Stmt, error)
-}
+var beginError = errors.New("begin error")
 
-func (m *MockDB) Begin() (*sql.Tx, error) {
-	return nil, nil
-}
+func TestExecuteTablesScriptsDBBeginError(t *testing.T) {
+	db := &MockDB{BeginFunc: func() (*sql.Tx, error) {
+		return nil, beginError
+	}}
 
-func (m *MockDB) Exec(query string, args ...interface{}) (sql.Result, error) {
-	return nil, nil
-}
+	m := &migrate{db: db}
 
-func (m *MockDB) Prepare(query string) (*sql.Stmt, error) {
-	if m.PrepareFunc != nil {
-		return m.PrepareFunc(query)
-	}
-	return nil, errors.New("Mock not implemented")
-}
+	err := m.executeTablesScripts()
 
-func (m *MockDB) Query(query string, args ...interface{}) (*sql.Rows, error) {
-	return nil, nil
-}
-
-func (m *MockDB) QueryRow(query string, args ...interface{}) *sql.Row {
-	return nil
-}
-
-func (m *MockDB) Close() error {
-	return nil
+	assert.Equal(t, beginError, err)
 }
 
 func TestMigrateDB(t *testing.T) {
-	// Create a mock DB for testing
-	mockDB := &MockDB{}
 
-	// Call the MigrateDB function with the mock DB
-	MigrateDB(mockDB)
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
 
-	// Add assertions or checks based on the behavior you want to test.
-	// For example, you can check if certain queries were executed on the mock DB.
+	mock.ExpectBegin()
+	mock.ExpectExec("^CREATE TABLE IF NOT EXISTS users \\(ID serial primary key , Name varchar \\);$").
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	mock.ExpectCommit()
+
+	MigrateDB(db)
+
+	err = mock.ExpectationsWereMet()
+	if err != nil {
+		t.Fatalf("%s", err)
+	}
+}
+
+func TestMigrateSteps(t *testing.T) {
+	type dummystrut struct {
+		ID   int    `sql:"type:serial,primary key"`
+		Name string `sql:"type:varchar(255)"`
+	}
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	mock.ExpectBegin()
+	mock.ExpectExec("^CREATE TABLE IF NOT EXISTS dummystruts \\(ID serial primary key , Name varchar\\(255\\) \\);$").
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	mock.ExpectCommit()
+
+	m := &migrate{db: db}
+	m.createTableScript(dummystrut{})
+	err = m.executeTablesScripts()
+	if err != nil {
+		t.Fatalf("%s", err)
+	}
+	log.Println(m.queries)
+
+	err = mock.ExpectationsWereMet()
+	if err != nil {
+		t.Fatalf("%s", err)
+	}
+}
+
+func TestExecuteTablesScriptsCreateTableError(t *testing.T) {
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	ddl := "CREATE TABLE - with invalid sql"
+	mock.ExpectBegin()
+	mock.ExpectExec(ddl)
+
+	m := &migrate{db: db}
+	m.queries = []string{ddl}
+	err = m.executeTablesScripts()
+
+	assert.NotNilf(t, err, "expected an error, got %v", err)
 }
 
 func TestProcessStruct(t *testing.T) {
 	// Define a test model
 	type dummytable struct {
-		ID   int    `sql:"type:serial,primary key"`
-		Name string `sql:"type:varchar(255)"`
+		ID        int    `sql:"type:serial,primary key"`
+		Name      string `sql:"type:varchar(255)"`
+		EmptyType string `sql:"type:"`
+		NoType    string
 	}
 
 	// Call processStruct with the test model
@@ -64,12 +113,39 @@ func TestProcessStruct(t *testing.T) {
 	// Add assertions or checks based on the expected behavior of processStruct.
 	// For example, you can check if the result contains the expected table name and columns.
 	assert.Equal(t, result.Name, "dummytables")
-	assert.Equal(t, len(result.Columns), 2)
-	assert.Equal(t, len(result.Values), 2)
+	assert.Equal(t, len(result.Columns), 3)
+	assert.Equal(t, len(result.Values), 3)
 	assert.Equal(t, result.Columns[0].Name, "ID")
 	assert.Equal(t, result.Columns[0].Types, "serial primary key")
 	assert.Equal(t, result.Columns[1].Name, "Name")
 	assert.Equal(t, result.Columns[1].Types, "varchar(255)")
 }
 
-// Add more test cases as needed for other functions in your package.
+func TestGetTableName(t *testing.T) {
+	type TestStruct struct{}
+	testCases := []struct {
+		name     string
+		input    reflect.Type
+		expected string
+	}{
+		{
+			name:     "test TestStruct",
+			input:    reflect.TypeOf(TestStruct{}),
+			expected: "teststructs",
+		},
+		{
+			name:     "test nil input",
+			input:    nil,
+			expected: "",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := getTableName(tc.input)
+			if result != tc.expected {
+				t.Errorf("Expected %s, but got %s", tc.expected, result)
+			}
+		})
+	}
+}
