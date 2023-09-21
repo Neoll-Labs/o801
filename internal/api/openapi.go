@@ -2,8 +2,7 @@ package api
 
 import "net/http"
 
-func (r router) OpenAPI() router {
+func (r router) OpenAPI() {
 	r.Handle("/", http.FileServer(http.Dir("api")))
 
-	return r
 }

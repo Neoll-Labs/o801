@@ -4,11 +4,10 @@ import (
 	"net/http"
 )
 
-func (r *router) UserEndpoints() *router {
+func (r *router) UserEndpoints() {
 
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("john doe"))
+		_, _ = w.Write([]byte("john doe"))
 	})
 
-	return r
 }

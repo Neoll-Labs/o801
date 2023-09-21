@@ -14,7 +14,7 @@ func InitDB() *sql.DB {
 		log.Fatalf("database error: %v", err)
 	}
 
-	MigrateDB()
+	MigrateDB(dbc)
 
 	return dbc
 }

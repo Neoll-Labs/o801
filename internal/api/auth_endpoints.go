@@ -4,14 +4,12 @@ import (
 	"net/http"
 )
 
-func (r *router) AuthEndpoints() *router {
-
+func (r *router) AuthEndpoints() {
 	r.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("login"))
+		_, _ = w.Write([]byte("login"))
 	})
 	r.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("logout"))
+		_, _ = w.Write([]byte("logout"))
 	})
 
-	return r
 }
