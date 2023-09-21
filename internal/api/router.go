@@ -41,9 +41,8 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 
 		matches := route.Patterns.FindStringSubmatch(req.URL.Path)
-		req.WithContext(context.WithValue(req.Context(), "params", matches))
 
-		route.Handler.ServeHTTP(w, req)
+		route.Handler.ServeHTTP(w, req.WithContext(context.WithValue(req.Context(), "params", matches)))
 
 		return
 	}

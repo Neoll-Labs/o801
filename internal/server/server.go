@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"strings"
 	"sync"
 
 	"github.com/nelsonstr/o801/db"
@@ -39,16 +38,13 @@ type Server struct {
 
 // GetUser gets the user from the storage.
 func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
-	if true {
-		w.Write([]byte("adsfas"))
-		return
-	}
-	p := strings.Split(r.URL.String(), "/")
-	if len(p) < 3 {
+	ps := r.Context().Value("params").([]string)
+
+	if len(ps) < 2 {
 		s.errorHandler(w, r, &internal.BadRequestError{}, nil)
 		return
 	}
-	id, err := strconv.Atoi(p[2])
+	id, err := strconv.Atoi(ps[1]) // ID
 	if err != nil {
 		s.errorHandler(w, r, &internal.BadRequestError{}, nil)
 		return
