@@ -16,17 +16,28 @@ import (
 )
 
 type migrate struct {
-	db      *sql.DB
+	db      DBInterface
 	Query   string
 	queries []string
 }
 
-func MigrateDB(db *sql.DB) {
+// DBInterface is a custom interface that matches the methods used from *sql.DB.
+type DBInterface interface {
+	Begin() (*sql.Tx, error)
+	Exec(query string, args ...interface{}) (sql.Result, error)
+	Prepare(query string) (*sql.Stmt, error)
+	Query(query string, args ...interface{}) (*sql.Rows, error)
+	QueryRow(query string, args ...interface{}) *sql.Row
+	Close() error
+}
+
+func MigrateDB(db DBInterface) {
 	m := &migrate{db: db}
 
 	log.Printf("start migration.")
 
 	m.createTableScript(models.User{})
+
 	m.executeTablesScripts()
 
 	log.Printf("end migration.")
@@ -63,13 +74,13 @@ type Table struct {
 func readTags(tags string) map[string][]string {
 	attributes := strings.Split(tags, ";")
 
-	var vals = make(map[string][]string)
+	v := make(map[string][]string)
 	for i := 0; i < len(attributes); i++ {
 		pre := strings.SplitN(attributes[i], ":", 2) // split the type and value
-		vals[pre[0]] = strings.Split(pre[1], ",")
+		v[pre[0]] = strings.Split(pre[1], ",")
 	}
 
-	return vals
+	return v
 }
 
 func (m *migrate) createTableScript(model any) {
@@ -100,7 +111,7 @@ func processStruct(model any) *Table {
 	for i := 0; i < typ.NumField(); i++ {
 		var col Column
 
-		col.Name = strings2.ToSnake(typ.Field(i).Name)
+		col.Name = typ.Field(i).Name
 		attr := readTags(typ.Field(i).Tag.Get("sql"))
 
 		tbl.Values[col.Name] = value.Field(i)
@@ -108,7 +119,7 @@ func processStruct(model any) *Table {
 			col.Types = strings.Join(slice, " ")
 		}
 
-		//TODO relationships and other types
+		//TODO relationships and other types of columns
 
 		tbl.Columns = append(tbl.Columns, col)
 	}
