@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func (r *Router) UserEndpoints(s internal.Handlers) {
+func (r *Router) UserEndpoints(s internal.HandlerFuncAPI) {
 	r.Endpoint(http.MethodGet, "/(\\d+)+", s.Get)
 	r.Endpoint(http.MethodPost, "/", s.Create)
 }

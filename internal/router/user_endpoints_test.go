@@ -57,7 +57,7 @@ func TestRouter_UserEndpoints_CreateUserEmtpyBody(t *testing.T) {
 
 }
 
-func NewUserFakeServer(repo internal.Repository[*models.User]) internal.Handlers {
+func NewUserFakeServer(repo internal.Repository[*models.User]) internal.HandlerFuncAPI {
 	return &FakeHandlerAPI{
 		Mutex:        sync.Mutex{},
 		UserCache:    make(map[int64]models.User),
@@ -65,8 +65,6 @@ func NewUserFakeServer(repo internal.Repository[*models.User]) internal.Handlers
 		ErrorHandler: internal.DefaultErrorHandler,
 	}
 }
-
-////////////////////////////////////
 
 type FakeHandlerAPI struct {
 	sync.Mutex

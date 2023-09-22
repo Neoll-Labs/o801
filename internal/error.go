@@ -7,7 +7,6 @@ package internal
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 )
 
@@ -47,15 +46,6 @@ func (e *StorageError) Error() string {
 	return e.Err.Error()
 }
 
-// MethodNotAllowedError indicates that an error has occurred when parsing request parameters
-type BadRequestError struct {
-	Err error
-}
-
-func (e *BadRequestError) Error() string {
-	return e.Err.Error()
-}
-
 // RequiredError indicates that an error has occurred when parsing request parameters
 type RequiredError struct {
 	Field string
@@ -65,7 +55,7 @@ func (e *RequiredError) Error() string {
 	return fmt.Sprintf("required field '%s' is zero value.", e.Field)
 }
 
-// StorageError indicates that an error has occurred when parsing request parameters
+// NotFoundError indicates that an error has occurred when parsing request parameters
 type NotFoundError struct {
 	Err error
 }
@@ -80,20 +70,15 @@ type ErrorHandler func(w http.ResponseWriter, r *http.Request, err error)
 // DefaultErrorHandler defines the default logic on how to handle errors from the controller. Any errors from parsing
 func DefaultErrorHandler(w http.ResponseWriter, _ *http.Request, err error) {
 	if _, ok := err.(*ParsingError); ok {
-		// Handle parsing errors
-		log.Println(err.Error())
 		_ = EncodeJSONResponse(func(i int) *int { return &i }(http.StatusBadRequest), w)
 	} else if _, ok := err.(*RequiredError); ok {
-		// Handle missing required errors
-		log.Println(err.Error())
 		_ = EncodeJSONResponse(func(i int) *int { return &i }(http.StatusUnprocessableEntity), w)
 	} else if _, ok := err.(*MethodNotAllowedError); ok {
-		// Handle method not allowed errors
-		log.Println(err.Error())
 		_ = EncodeJSONResponse(func(i int) *int { return &i }(http.StatusMethodNotAllowed), w)
 	} else if _, ok := err.(*NotFoundError); ok {
-		// Handle method not allowed errors
 		_ = EncodeJSONResponse(func(i int) *int { return &i }(http.StatusNotFound), w)
+	} else if _, ok := err.(*StorageError); ok {
+		_ = EncodeJSONResponse(func(i int) *int { return &i }(http.StatusBadGateway), w)
 	} else {
 		// Handle all other errors
 		_ = EncodeJSONResponse(func(i int) *int { return &i }(http.StatusInternalServerError), w)

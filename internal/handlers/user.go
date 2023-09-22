@@ -20,7 +20,7 @@ var (
 	_ http.HandlerFunc = (*UserHandlerAPI)(nil).Create
 )
 
-func NewUserServer(repo internal.Repository[*models.User]) internal.Handlers {
+func NewUserServer(repo internal.Repository[*models.User]) internal.HandlerFuncAPI {
 	return &UserHandlerAPI{
 		Mutex:        sync.Mutex{},
 		UserCache:    make(map[int64]models.User),
@@ -41,27 +41,25 @@ func (s *UserHandlerAPI) Get(w http.ResponseWriter, r *http.Request) {
 	ps := r.Context().Value("params").([]string)
 
 	if len(ps) < 2 {
-		s.ErrorHandler(w, r, &internal.BadRequestError{})
+		s.ErrorHandler(w, r, &internal.ParsingError{})
 		return
 	}
 
 	id, err := strconv.Atoi(ps[1]) // ID
 	if err != nil {
-		s.ErrorHandler(w, r, &internal.BadRequestError{})
+		s.ErrorHandler(w, r, &internal.ParsingError{})
 		return
 	}
 
-	s.Mutex.Lock()
-	defer s.Mutex.Unlock()
-
-	if u := s.UserCache[int64(id)]; u != models.NilUser {
-		b, _ := json.Marshal(u)
+	user := s.GetFromCached(id)
+	if user != &models.NilUser {
+		b, _ := json.Marshal(user)
 		_, _ = w.Write(b)
 
 		return
 	}
 
-	user, err := s.Repository.Get(r.Context(), id)
+	user, err = s.Repository.Get(r.Context(), id)
 	if err != nil {
 		s.ErrorHandler(w, r, &internal.StorageError{Err: err})
 		return
@@ -71,10 +69,27 @@ func (s *UserHandlerAPI) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.UserCache[user.ID] = *user
+	s.AddToCache(user)
 
 	b, _ := json.Marshal(user)
 	_, _ = w.Write(b)
+}
+
+func (s *UserHandlerAPI) AddToCache(user *models.User) {
+	s.Mutex.Lock()
+	defer s.Mutex.Unlock()
+	s.UserCache[user.ID] = *user
+}
+
+func (s *UserHandlerAPI) GetFromCached(id int) *models.User {
+	s.Mutex.Lock()
+	defer s.Mutex.Unlock()
+	u, exist := s.UserCache[int64(id)]
+	if !exist {
+		return &models.NilUser
+	}
+
+	return &u
 }
 
 // Create user.
@@ -84,7 +99,7 @@ func (s *UserHandlerAPI) Create(w http.ResponseWriter, r *http.Request) {
 	}{}
 
 	if err := json.NewDecoder(r.Body).Decode(&createUserReq); err != nil {
-		s.ErrorHandler(w, r, &internal.BadRequestError{})
+		s.ErrorHandler(w, r, &internal.ParsingError{})
 		return
 	}
 

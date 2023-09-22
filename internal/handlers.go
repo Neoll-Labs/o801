@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-type Handlers interface {
+type HandlerFuncAPI interface {
 	Create(http.ResponseWriter, *http.Request)
 	Get(http.ResponseWriter, *http.Request)
 }
