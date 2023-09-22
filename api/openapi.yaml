@@ -44,33 +44,6 @@ paths:
           description: user not found
       tags:
         - user
-    get:
-      operationId: GetUser
-      requestBody:
-        description: Create a new pet in the store
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/User'
-            example:
-              ID: 1
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              example:
-                id: '1'
-                Name: nelson
-              schema:
-                $ref: '#/components/schemas/User'
-          description: Successful operation, returns user data
-        '400':
-          description: Invalid request
-      tags:
-        - user
-
-
   /users/{id}:
     get:
       operationId: GetUser
@@ -95,32 +68,7 @@ paths:
           description: Invalid request
       tags:
         - user
-  /health:
-    get:
-      responses:
-        '200':
-          description: The system is up an running
-        '503':
-          description: Service Unavailable server error response code indicates that the server is not ready to handle
-      summary: Returns the health of the service.
-      tags:
-        - health check
-  /liveness:
-    get:
-      responses:
-        '200':
-          description: The system is up an running
-      summary: Returns whether it is currently operational and responsive.
-      tags:
-        - health check
-  /metrics:
-    get:
-      responses:
-        '200':
-          description: Returns the prometheus metrics
-      summary: Returns whether it is currently operational and responsive.
-      tags:
-        - monitoring
+
 components:
   schemas:
     User:
