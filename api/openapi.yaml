@@ -4,17 +4,17 @@ info:
   title: O801 API
   version: 1.0.0
 servers:
-- description: local server
-  url: http://127.0.0.1:8080/
+  - description: local server
+    url: http://127.0.0.1:8080/
 security:
-- basicAuth: []
+  - basicAuth: [ ]
 tags:
-- description: User endpoints
-  name: user
-- description: Prometheus metrics
-  name: monitoring
-- description: Health check endpoints
-  name: health check
+  - description: User endpoints
+    name: user
+  - description: Prometheus metrics
+    name: monitoring
+  - description: Health check endpoints
+    name: health check
 paths:
   /users:
     post:
@@ -43,7 +43,7 @@ paths:
         '404':
           description: user not found
       tags:
-      - user
+        - user
     get:
       operationId: GetUser
       requestBody:
@@ -68,19 +68,19 @@ paths:
         '400':
           description: Invalid request
       tags:
-      - user
+        - user
 
 
   /users/{id}:
     get:
       operationId: GetUser
       parameters:
-      - name: id
-        in: path
-        description: 'The id that needs to be fetched. '
-        required: true
-        schema:
-          type: number
+        - name: id
+          in: path
+          description: 'The id that needs to be fetched. '
+          required: true
+          schema:
+            type: number
       responses:
         '200':
           content:
@@ -94,7 +94,7 @@ paths:
         '400':
           description: Invalid request
       tags:
-      - user
+        - user
   /health:
     get:
       responses:
@@ -104,7 +104,7 @@ paths:
           description: Service Unavailable server error response code indicates that the server is not ready to handle
       summary: Returns the health of the service.
       tags:
-      - health check
+        - health check
   /liveness:
     get:
       responses:
@@ -112,7 +112,7 @@ paths:
           description: The system is up an running
       summary: Returns whether it is currently operational and responsive.
       tags:
-      - health check
+        - health check
   /metrics:
     get:
       responses:
@@ -120,7 +120,7 @@ paths:
           description: Returns the prometheus metrics
       summary: Returns whether it is currently operational and responsive.
       tags:
-      - monitoring
+        - monitoring
 components:
   schemas:
     User:
@@ -133,6 +133,6 @@ components:
         Name:
           type: string
       required:
-      - id
-      - Name
+        - id
+        - Name
       type: object

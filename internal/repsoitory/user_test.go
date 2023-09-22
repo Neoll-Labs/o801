@@ -22,7 +22,7 @@ func TestCreateUserSuccess(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	mock.ExpectBegin()
 
@@ -55,7 +55,7 @@ func TestCreateUserBeginError(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	mock.ExpectBegin().WillReturnError(errors.New("error"))
 
@@ -79,7 +79,7 @@ func TestCreateUserPrepareError(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	mock.ExpectBegin()
 
@@ -109,7 +109,7 @@ func TestCreateUserErrorInsertError(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	mock.ExpectBegin()
 
@@ -141,7 +141,7 @@ func TestCreateUsesCommitError(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	mock.ExpectBegin()
 
@@ -173,7 +173,7 @@ func TestGetUserSuccess(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	row := sqlmock.NewRows([]string{"id", "name"}).
 		AddRow(2, "name2")
@@ -202,7 +202,7 @@ func TestGetUserNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	row := sqlmock.NewRows([]string{"id", "name"})
 	mock.ExpectQuery("^select id, name from users where id = \\$1$").
@@ -229,7 +229,7 @@ func TestGetUserError(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	mock.ExpectQuery("^select id, name from users where id = \\$1$").
 		WithArgs(2).WillReturnError(errors.New("sql error"))

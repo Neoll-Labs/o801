@@ -175,10 +175,10 @@ type UserFakeRepository struct {
 	error error
 }
 
-func (f *UserFakeRepository) Create(ctx context.Context, s string) (*models.User, error) {
+func (f *UserFakeRepository) Create(_ context.Context, _ string) (*models.User, error) {
 	return f.user, f.error
 }
 
-func (f *UserFakeRepository) Get(ctx context.Context, i int) (*models.User, error) {
+func (f *UserFakeRepository) Get(_ context.Context, _ int) (*models.User, error) {
 	return f.user, f.error
 }

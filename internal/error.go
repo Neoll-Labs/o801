@@ -5,14 +5,8 @@
 package internal
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
-)
-
-var (
-	// ErrTypeAssertionError is thrown when type an interface does not match the asserted type
-	ErrTypeAssertionError = errors.New("unable to assert type")
 )
 
 // ParsingError indicates that an error has occurred when parsing request parameters
@@ -69,20 +63,24 @@ type ErrorHandler func(w http.ResponseWriter, r *http.Request, err error)
 
 // DefaultErrorHandler defines the default logic on how to handle errors from the controller. Any errors from parsing
 func DefaultErrorHandler(w http.ResponseWriter, _ *http.Request, err error) {
-	if _, ok := err.(*ParsingError); ok {
-		_ = EncodeJSONResponse(func(i int) *int { return &i }(http.StatusBadRequest), w)
-	} else if _, ok := err.(*RequiredError); ok {
-		_ = EncodeJSONResponse(func(i int) *int { return &i }(http.StatusUnprocessableEntity), w)
-	} else if _, ok := err.(*MethodNotAllowedError); ok {
-		_ = EncodeJSONResponse(func(i int) *int { return &i }(http.StatusMethodNotAllowed), w)
-	} else if _, ok := err.(*NotFoundError); ok {
-		_ = EncodeJSONResponse(func(i int) *int { return &i }(http.StatusNotFound), w)
-	} else if _, ok := err.(*StorageError); ok {
-		_ = EncodeJSONResponse(func(i int) *int { return &i }(http.StatusBadGateway), w)
-	} else {
-		// Handle all other errors
-		_ = EncodeJSONResponse(func(i int) *int { return &i }(http.StatusInternalServerError), w)
+	var statusCode int
+
+	switch err.(type) {
+	case *ParsingError:
+		statusCode = http.StatusBadRequest
+	case *RequiredError:
+		statusCode = http.StatusUnprocessableEntity
+	case *MethodNotAllowedError:
+		statusCode = http.StatusMethodNotAllowed
+	case *NotFoundError:
+		statusCode = http.StatusNotFound
+	case *StorageError:
+		statusCode = http.StatusBadGateway
+	default:
+		statusCode = http.StatusInternalServerError
 	}
+
+	_ = EncodeJSONResponse(func(i int) *int { return &i }(statusCode), w)
 }
 
 // EncodeJSONResponse uses the json encoder to write an interface to the http response with an optional status code

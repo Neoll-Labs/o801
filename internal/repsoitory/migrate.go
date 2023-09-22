@@ -31,16 +31,15 @@ type DBInterface interface {
 	Close() error
 }
 
-func MigrateDB(db DBInterface) {
+func MigrateDB(db DBInterface) error {
 	m := &migrate{db: db}
 
 	log.Printf("start migration.")
+	defer log.Printf("end migration.")
 
 	m.createTableScript(models.User{})
 
-	m.executeTablesScripts()
-
-	log.Printf("end migration.")
+	return m.executeTablesScripts()
 }
 
 func (m *migrate) executeTablesScripts() error {

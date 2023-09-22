@@ -29,7 +29,7 @@ func TestMigrateDB(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	mock.ExpectBegin()
 	mock.ExpectExec("^CREATE TABLE IF NOT EXISTS users \\(ID serial primary key , Name varchar \\);$").
@@ -37,7 +37,8 @@ func TestMigrateDB(t *testing.T) {
 
 	mock.ExpectCommit()
 
-	MigrateDB(db)
+	err = MigrateDB(db)
+	assert.NoError(t, err)
 
 	err = mock.ExpectationsWereMet()
 	if err != nil {
@@ -50,18 +51,19 @@ func TestMigrateCreateTableError(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
+	errTable := errors.New("create table error")
 	mock.ExpectBegin()
 	mock.ExpectExec("^CREATE TABLE IF NOT EXISTS users \\(ID serial primary key , Name varchar \\);$").
-		WillReturnError(errors.New("create table error"))
+		WillReturnError(errTable)
 
 	mock.ExpectRollback()
 
-	MigrateDB(db)
+	err = MigrateDB(db)
+	assert.Equal(t, errTable, err)
 
-	err = mock.ExpectationsWereMet()
-	if err != nil {
+	if err = mock.ExpectationsWereMet(); err != nil {
 		t.Fatalf("%s", err)
 	}
 }
@@ -76,7 +78,7 @@ func TestMigrateSteps(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	mock.ExpectBegin()
 	mock.ExpectExec("^CREATE TABLE IF NOT EXISTS dummystruts \\(ID serial primary key , Name varchar\\(255\\) \\);$").
@@ -102,7 +104,7 @@ func TestExecuteTablesScriptsCreateTableError(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	ddl := "CREATE TABLE - with invalid sql"
 

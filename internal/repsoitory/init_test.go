@@ -11,7 +11,7 @@ import (
 func TestInitDB_PingError(t *testing.T) {
 	// given
 	env := "DB_URL"
-	os.Setenv(env, "postgres://postgres:postgres@127.0.0.1:9779/?sslmode=disable")
+	_ = os.Setenv(env, "postgres://postgres:postgres@127.0.0.1:9779/?sslmode=disable")
 
 	// when
 	_, err := InitDB()
@@ -20,13 +20,13 @@ func TestInitDB_PingError(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, "dial tcp 127.0.0.1:9779: connectex: No connection could be made because the target machine actively refused it.", err.Error())
 
-	os.Unsetenv(env)
+	_ = os.Unsetenv(env)
 }
 
 func TestInitDB_InvalidURLError(t *testing.T) {
 	// given
 	env := "DB_DRIVER"
-	os.Setenv(env, "fake:fake")
+	_ = os.Setenv(env, "fake:fake")
 
 	// when
 	_, err := InitDB()
@@ -35,5 +35,5 @@ func TestInitDB_InvalidURLError(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, "sql: unknown driver \"fake:fake\" (forgotten import?)", err.Error())
 
-	os.Unsetenv(env)
+	_ = os.Unsetenv(env)
 }

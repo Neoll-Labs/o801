@@ -24,18 +24,20 @@ func main() {
 	}
 	defer func() { _ = dbc.Close() }()
 
-	repsoitory.MigrateDB(dbc)
+	if err := repsoitory.MigrateDB(dbc); err != nil {
+		log.Fatalf("db migration error: %v", err)
+	}
 
-	router := router.NewRouter()
+	r := router.NewRouter()
 
-	v1 := router.Version(1)
+	v1 := r.Version(1)
 	v1.Resource("/users").UserEndpoints(s.NewUserServer(repsoitory.NewUserRepo(dbc)))
 
 	log.Printf("start server.")
 
 	server := &http.Server{
 		Addr:         ":8080",
-		Handler:      router,
+		Handler:      r,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}

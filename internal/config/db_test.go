@@ -26,12 +26,12 @@ func TestDbURL(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.newURL != "" {
-				os.Setenv(env, tt.newURL)
+				_ = os.Setenv(env, tt.newURL)
 			}
 			if got := DbURL(); got != tt.want {
 				t.Errorf("DbURL() = %v, want %v", got, tt.want)
 			}
-			os.Unsetenv(env)
+			_ = os.Unsetenv(env)
 		})
 	}
 }
@@ -59,12 +59,12 @@ func TestDbDriver(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.new != "" {
-				os.Setenv(env, tt.new)
+				_ = os.Setenv(env, tt.new)
 			}
 			if got := DbDriver(); got != tt.want {
 				t.Errorf("DbDriver() = %v, want %v", got, tt.want)
 			}
-			os.Unsetenv(env)
+			_ = os.Unsetenv(env)
 		})
 	}
 }

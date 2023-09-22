@@ -3,7 +3,6 @@ package router
 import (
 	"context"
 	"github.com/nelsonstr/o801/internal"
-	"github.com/nelsonstr/o801/internal/repsoitory"
 	"github.com/nelsonstr/o801/models"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -74,28 +73,21 @@ type FakeHandlerAPI struct {
 }
 
 func (f *FakeHandlerAPI) Create(w http.ResponseWriter, _ *http.Request) {
-	w.Write([]byte("Created"))
+	_, _ = w.Write([]byte("Created"))
 }
 
 func (f *FakeHandlerAPI) Get(w http.ResponseWriter, _ *http.Request) {
-	w.Write([]byte("Get"))
+	_, _ = w.Write([]byte("Get"))
 }
 
 var _ internal.Repository[*models.User] = (*UserFakeRepository)(nil)
 
-func NewUserStorage(db repsoitory.DBInterface) *UserFakeRepository {
-	return &UserFakeRepository{}
+type UserFakeRepository struct{}
+
+func (f *UserFakeRepository) Create(_ context.Context, _ string) (*models.User, error) {
+	panic("ignore me")
 }
 
-type UserFakeRepository struct {
-}
-
-func (f *UserFakeRepository) Create(ctx context.Context, s string) (*models.User, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (f *UserFakeRepository) Get(ctx context.Context, i int) (*models.User, error) {
-	//TODO implement me
-	panic("implement me")
+func (f *UserFakeRepository) Get(_ context.Context, _ int) (*models.User, error) {
+	panic("ignore me")
 }

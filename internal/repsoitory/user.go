@@ -28,7 +28,7 @@ func (u *UserRepository) Create(_ context.Context, name string) (*models.User, e
 	if err != nil {
 		return &models.NilUser, err
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	prepare, err := tx.Prepare("INSERT INTO users (name) VALUES ($1)  RETURNING id")
 	if err != nil {
