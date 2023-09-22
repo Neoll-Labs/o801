@@ -20,6 +20,7 @@ import (
 func main() {
 
 	dbc := o801db.InitDB()
+	o801db.MigrateDB(dbc)
 	defer func() { _ = dbc.Close() }()
 	server0801 := server2.NewServer(o801db.NewUserStorage(dbc))
 
