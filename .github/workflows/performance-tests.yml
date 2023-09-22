@@ -1,0 +1,34 @@
+name: Performance Tests
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  performance-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go (or the required runtime)
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Build test environment (if necessary)
+        run: |
+          #docker build -t performance-tests .
+
+      - name: Run performance tests
+        run: |
+          # docker run performance-tests /path/to/your/test/script
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results
+          path: path/to/your/test/results
+
