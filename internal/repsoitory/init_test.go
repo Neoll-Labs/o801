@@ -18,7 +18,7 @@ func TestInitDB_PingError(t *testing.T) {
 
 	// then
 	assert.Error(t, err)
-	assert.Equal(t, "dial tcp 127.0.0.1:9779: connectex: No connection could be made because the target machine actively refused it.", err.Error())
+	assert.Equal(t, "dial tcp 127.0.0.1:9779: connect: connection refused", err.Error())
 
 	_ = os.Unsetenv(env)
 }
