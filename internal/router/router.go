@@ -1,4 +1,4 @@
-package api
+package router
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	"github.com/nelsonstr/o801/internal/log"
-	"github.com/nelsonstr/o801/internal/monitoring"
 )
 
 type Route struct {
@@ -60,7 +59,7 @@ func (r *Router) Version(v int) *Router {
 }
 
 func (r *Router) Resource(name string) *Router {
-	r.Mux.Handle(name+"/", monitoring.PrometheusMiddleware(http.StripPrefix(name, r.Mux)))
+	r.Mux.Handle(name+"/", http.StripPrefix(name, r.Mux))
 	r.resource = name
 
 	return r
@@ -75,5 +74,4 @@ func (r *Router) Endpoint(method, path string, h http.HandlerFunc) {
 		Method:   method,
 		Handler:  h,
 	})
-
 }

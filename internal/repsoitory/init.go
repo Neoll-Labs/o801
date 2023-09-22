@@ -1,8 +1,9 @@
-package db
+package repsoitory
 
 import (
 	"database/sql"
-	"github.com/nelsonstr/o801/config"
+	"github.com/nelsonstr/o801/internal/config"
+	"time"
 )
 
 func InitDB() (*sql.DB, error) {
@@ -14,6 +15,10 @@ func InitDB() (*sql.DB, error) {
 	if err := dbc.Ping(); err != nil {
 		return nil, err
 	}
+
+	dbc.SetMaxIdleConns(0)
+	dbc.SetMaxOpenConns(100)
+	dbc.SetConnMaxLifetime(60 * time.Second)
 
 	return dbc, nil
 }

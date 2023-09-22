@@ -1,4 +1,4 @@
-package db
+package repsoitory
 
 import (
 	"context"
@@ -8,6 +8,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
+
+func Test_CreateUser(t *testing.T) {
+	db := &mockDB{}
+	repo := NewUserRepo(db)
+
+	assert.Equal(t, db, repo.db)
+}
 
 func TestCreateUserSuccess(t *testing.T) {
 	// given
@@ -28,7 +35,7 @@ func TestCreateUserSuccess(t *testing.T) {
 	mock.ExpectCommit()
 
 	// when
-	userStorage := &UserStorage{db: db}
+	userStorage := &UserRepository{db: db}
 	user, err := userStorage.Create(context.Background(), name)
 
 	// then
@@ -53,7 +60,7 @@ func TestCreateUserBeginError(t *testing.T) {
 	mock.ExpectBegin().WillReturnError(errors.New("error"))
 
 	// when
-	userStorage := &UserStorage{db: db}
+	userStorage := &UserRepository{db: db}
 	user, err := userStorage.Create(context.Background(), "name")
 
 	// then
@@ -83,7 +90,7 @@ func TestCreateUserPrepareError(t *testing.T) {
 	mock.ExpectRollback()
 
 	// when
-	userStorage := &UserStorage{db: db}
+	userStorage := &UserRepository{db: db}
 	user, err := userStorage.Create(context.Background(), name)
 
 	// then
@@ -115,7 +122,7 @@ func TestCreateUserErrorInsertError(t *testing.T) {
 	mock.ExpectRollback()
 
 	// when
-	userStorage := &UserStorage{db: db}
+	userStorage := &UserRepository{db: db}
 	user, err := userStorage.Create(context.Background(), name)
 
 	// then
@@ -147,7 +154,7 @@ func TestCreateUsesCommitError(t *testing.T) {
 	mock.ExpectCommit().WillReturnError(errors.New("error"))
 
 	// when
-	userStorage := &UserStorage{db: db}
+	userStorage := &UserRepository{db: db}
 	user, err := userStorage.Create(context.Background(), name)
 
 	// then
@@ -175,7 +182,7 @@ func TestGetUserSuccess(t *testing.T) {
 		WillReturnRows(row)
 
 	// when
-	userStorage := &UserStorage{db: db}
+	userStorage := &UserRepository{db: db}
 	user, err := userStorage.Get(context.Background(), 2)
 
 	// then
@@ -203,7 +210,7 @@ func TestGetUserNotFound(t *testing.T) {
 		WillReturnRows(row).WillReturnError(errors.New("sql: no rows in result set"))
 
 	// when
-	userStorage := &UserStorage{db: db}
+	userStorage := &UserRepository{db: db}
 	user, err := userStorage.Get(context.Background(), 2)
 
 	// then
@@ -228,7 +235,7 @@ func TestGetUserError(t *testing.T) {
 		WithArgs(2).WillReturnError(errors.New("sql error"))
 
 	// when
-	userStorage := &UserStorage{db: db}
+	userStorage := &UserRepository{db: db}
 	user, err := userStorage.Get(context.Background(), 2)
 
 	// then

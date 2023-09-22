@@ -1,4 +1,4 @@
-package db
+package repsoitory
 
 import (
 	"github.com/stretchr/testify/assert"
@@ -8,7 +8,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func TestInitDBPingError(t *testing.T) {
+func TestInitDB_PingError(t *testing.T) {
 	// given
 	env := "DB_URL"
 	os.Setenv(env, "postgres://postgres:postgres@127.0.0.1:9779/?sslmode=disable")
@@ -23,7 +23,7 @@ func TestInitDBPingError(t *testing.T) {
 	os.Unsetenv(env)
 }
 
-func TestInitDBInvalidURLError(t *testing.T) {
+func TestInitDB_InvalidURLError(t *testing.T) {
 	// given
 	env := "DB_DRIVER"
 	os.Setenv(env, "fake:fake")

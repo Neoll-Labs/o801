@@ -2,14 +2,14 @@
  license x
 */
 
-package db
+package internal
 
 import (
 	"context"
 )
 
-// CRService interface create and get users
-type CRService[T any] interface {
+// Repository interface create and get
+type Repository[T any] interface {
 	Create(context.Context, string) (T, error)
 	Get(context.Context, int) (T, error)
 }

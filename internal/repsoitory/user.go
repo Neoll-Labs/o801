@@ -2,27 +2,28 @@
  license x
 */
 
-package db
+package repsoitory
 
 import (
 	"context"
+	"github.com/nelsonstr/o801/internal"
 	"github.com/nelsonstr/o801/models"
 )
 
-type UserStorage struct {
+type UserRepository struct {
 	db DBInterface
 }
 
-var _ CRService[*models.User] = (*UserStorage)(nil)
+var _ internal.Repository[*models.User] = (*UserRepository)(nil)
 
-func NewUserStorage(db DBInterface) *UserStorage {
-	return &UserStorage{
+func NewUserRepo(db DBInterface) *UserRepository {
+	return &UserRepository{
 		db: db,
 	}
 }
 
 // Create User with name
-func (u *UserStorage) Create(_ context.Context, name string) (*models.User, error) {
+func (u *UserRepository) Create(_ context.Context, name string) (*models.User, error) {
 	tx, err := u.db.Begin()
 	if err != nil {
 		return &models.NilUser, err
@@ -48,7 +49,7 @@ func (u *UserStorage) Create(_ context.Context, name string) (*models.User, erro
 }
 
 // Get User with id
-func (u *UserStorage) Get(_ context.Context, id int) (*models.User, error) {
+func (u *UserRepository) Get(_ context.Context, id int) (*models.User, error) {
 	rows := u.db.QueryRow("select id, name from users where id = $1", id)
 
 	user := &models.User{}

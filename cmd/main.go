@@ -7,33 +7,29 @@ package main
 import (
 	"errors"
 	s "github.com/nelsonstr/o801/internal/handlers"
+	"github.com/nelsonstr/o801/internal/repsoitory"
+	"github.com/nelsonstr/o801/internal/router"
 	"log"
 	"net/http"
 	"time"
 
 	_ "github.com/lib/pq"
-
-	o801db "github.com/nelsonstr/o801/db"
-	"github.com/nelsonstr/o801/internal/api"
 )
 
 func main() {
 
-	dbc, err := o801db.InitDB()
+	dbc, err := repsoitory.InitDB()
 	if err != nil {
 		log.Fatalf("db connection error: %v", err)
 	}
 	defer func() { _ = dbc.Close() }()
 
-	o801db.MigrateDB(dbc)
+	repsoitory.MigrateDB(dbc)
 
-	router := api.NewRouter()
-
-	router.Metrics()
+	router := router.NewRouter()
 
 	v1 := router.Version(1)
-
-	v1.Resource("/users").UserEndpoints(s.NewServer(o801db.NewUserStorage(dbc)))
+	v1.Resource("/users").UserEndpoints(s.NewUserServer(repsoitory.NewUserRepo(dbc)))
 
 	log.Printf("start server.")
 
