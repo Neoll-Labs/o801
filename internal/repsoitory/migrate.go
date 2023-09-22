@@ -7,12 +7,12 @@ package repsoitory
 import (
 	"database/sql"
 	"fmt"
+	strings2 "github.com/nelsonstr/o801/internal/strings"
 	"log"
 	"reflect"
 	"strings"
 
 	"github.com/nelsonstr/o801/models"
-	strings2 "github.com/nelsonstr/o801/strings"
 )
 
 type migrate struct {
