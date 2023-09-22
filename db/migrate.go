@@ -51,7 +51,6 @@ func (m *migrate) executeTablesScripts() error {
 	defer func() { _ = tx.Rollback() }()
 
 	for _, query := range m.queries {
-		log.Printf("Executing query: %s", query)
 		_, err := tx.Exec(query)
 		if err != nil {
 			return err

@@ -45,6 +45,27 @@ func TestMigrateDB(t *testing.T) {
 	}
 }
 
+func TestMigrateCreateTableError(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	mock.ExpectBegin()
+	mock.ExpectExec("^CREATE TABLE IF NOT EXISTS users \\(ID serial primary key , Name varchar \\);$").
+		WillReturnError(errors.New("create table error"))
+
+	mock.ExpectRollback()
+
+	MigrateDB(db)
+
+	err = mock.ExpectationsWereMet()
+	if err != nil {
+		t.Fatalf("%s", err)
+	}
+}
+
 func TestMigrateSteps(t *testing.T) {
 	type dummystrut struct {
 		ID   int    `sql:"type:serial,primary key"`

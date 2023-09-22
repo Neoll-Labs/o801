@@ -6,7 +6,7 @@ package main
 
 import (
 	"errors"
-	server2 "github.com/nelsonstr/o801/internal/server"
+	s "github.com/nelsonstr/o801/internal/server"
 	"log"
 	"net/http"
 	"time"
@@ -19,10 +19,13 @@ import (
 
 func main() {
 
-	dbc := o801db.InitDB()
-	o801db.MigrateDB(dbc)
+	dbc, err := o801db.InitDB()
+	if err != nil {
+		log.Fatalf("db connection error: %v", err)
+	}
 	defer func() { _ = dbc.Close() }()
-	server0801 := server2.NewServer(o801db.NewUserStorage(dbc))
+
+	o801db.MigrateDB(dbc)
 
 	router := api.NewRouter()
 
@@ -30,7 +33,7 @@ func main() {
 
 	v1 := router.Version(1)
 
-	v1.Resource("/users").UserEndpoints(server0801)
+	v1.Resource("/users").UserEndpoints(s.NewServer(o801db.NewUserStorage(dbc)))
 
 	log.Printf("start server.")
 

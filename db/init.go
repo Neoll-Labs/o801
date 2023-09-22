@@ -3,18 +3,17 @@ package db
 import (
 	"database/sql"
 	"github.com/nelsonstr/o801/config"
-	"log"
 )
 
-func InitDB() *sql.DB {
-
-	dbc, err := sql.Open("postgres", config.DbURL())
-
+func InitDB() (*sql.DB, error) {
+	dbc, err := sql.Open(config.DbDriver(), config.DbURL())
 	if err != nil {
-		log.Fatalf("database error: %v", err)
+		return nil, err
 	}
 
-	MigrateDB(dbc)
+	if err := dbc.Ping(); err != nil {
+		return nil, err
+	}
 
-	return dbc
+	return dbc, nil
 }
