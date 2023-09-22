@@ -2,29 +2,12 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/nelsonstr/o801/models"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
-
-func TestCreateUserPrepareStmtError(t *testing.T) {
-	// given
-	db := &mockDB{
-		PrepareFunc: func(query string) (*sql.Stmt, error) {
-			return nil, errors.New("Prepare error")
-		},
-	}
-
-	// when
-	userStorage := &UserStorage{db: db}
-
-	// then
-	_, err := userStorage.Create(context.Background(), "new name")
-	assert.Error(t, err)
-}
 
 func TestCreateUserSuccess(t *testing.T) {
 	// given
@@ -34,17 +17,13 @@ func TestCreateUserSuccess(t *testing.T) {
 	}
 	defer db.Close()
 
+	mock.ExpectBegin()
+
 	expectedSQL := "^INSERT INTO users \\(name\\) VALUES \\(\\$1\\)  RETURNING id$"
 	name := "new user"
-	mock.ExpectPrepare(expectedSQL).ExpectExec().WithArgs(name).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectPrepare(expectedSQL)
 
-	//mock.ExpectBegin()
-
-	rs := sqlmock.NewRows([]string{"id", "title"}).FromCSVString("5,hello world")
-
-	mock.ExpectQuery(expectedSQL).
-		WithArgs(5).
-		WillReturnRows(rs)
+	mock.ExpectQuery(expectedSQL).WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 
 	mock.ExpectCommit()
 
@@ -54,8 +33,126 @@ func TestCreateUserSuccess(t *testing.T) {
 
 	// then
 	assert.NoError(t, err)
-	assert.Equal(t, int64(2), user.ID)
-	assert.Equal(t, "name2", user.Name)
+	assert.Equal(t, int64(1), user.ID)
+	assert.Equal(t, name, user.Name)
+
+	err = mock.ExpectationsWereMet()
+	if err != nil {
+		t.Fatalf("%s", err)
+	}
+}
+
+func TestCreateUserBeginError(t *testing.T) {
+	// given
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	mock.ExpectBegin().WillReturnError(errors.New("error"))
+
+	// when
+	userStorage := &UserStorage{db: db}
+	user, err := userStorage.Create(context.Background(), "name")
+
+	// then
+	assert.Equal(t, err, errors.New("error"))
+	assert.Equal(t, user, &models.NilUser)
+
+	err = mock.ExpectationsWereMet()
+	if err != nil {
+		t.Fatalf("%s", err)
+	}
+}
+
+func TestCreateUserPrepareError(t *testing.T) {
+	// given
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	mock.ExpectBegin()
+
+	expectedSQL := "^INSERT INTO users \\(name\\) VALUES \\(\\$1\\)  RETURNING id$"
+	name := "new user"
+	mock.ExpectPrepare(expectedSQL).WillReturnError(errors.New("error"))
+
+	mock.ExpectRollback()
+
+	// when
+	userStorage := &UserStorage{db: db}
+	user, err := userStorage.Create(context.Background(), name)
+
+	// then
+	assert.Equal(t, err, errors.New("error"))
+	assert.Equal(t, user, &models.NilUser)
+
+	err = mock.ExpectationsWereMet()
+	if err != nil {
+		t.Fatalf("%s", err)
+	}
+}
+
+func TestCreateUserErrorInsertError(t *testing.T) {
+	// given
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	mock.ExpectBegin()
+
+	expectedSQL := "^INSERT INTO users \\(name\\) VALUES \\(\\$1\\)  RETURNING id$"
+	name := "new user"
+	mock.ExpectPrepare(expectedSQL)
+
+	mock.ExpectQuery(expectedSQL).WillReturnError(errors.New("error"))
+
+	mock.ExpectRollback()
+
+	// when
+	userStorage := &UserStorage{db: db}
+	user, err := userStorage.Create(context.Background(), name)
+
+	// then
+	assert.Equal(t, err, errors.New("error"))
+	assert.Equal(t, user, &models.NilUser)
+
+	err = mock.ExpectationsWereMet()
+	if err != nil {
+		t.Fatalf("%s", err)
+	}
+}
+
+func TestCreateUsesCommitError(t *testing.T) {
+	// given
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	mock.ExpectBegin()
+
+	expectedSQL := "^INSERT INTO users \\(name\\) VALUES \\(\\$1\\)  RETURNING id$"
+	name := "new user"
+	mock.ExpectPrepare(expectedSQL)
+
+	mock.ExpectQuery(expectedSQL).WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
+
+	mock.ExpectCommit().WillReturnError(errors.New("error"))
+
+	// when
+	userStorage := &UserStorage{db: db}
+	user, err := userStorage.Create(context.Background(), name)
+
+	// then
+	assert.Equal(t, err, errors.New("error"))
+	assert.Equal(t, user, &models.NilUser)
 
 	err = mock.ExpectationsWereMet()
 	if err != nil {

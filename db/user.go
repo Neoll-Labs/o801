@@ -23,22 +23,19 @@ func NewUserStorage(db DBInterface) *UserStorage {
 
 // Create User with name
 func (u *UserStorage) Create(_ context.Context, name string) (*models.User, error) {
-	stmt, err := u.db.Prepare("INSERT INTO users (name) VALUES ($1)  RETURNING id")
+	tx, err := u.db.Begin()
 	if err != nil {
 		return &models.NilUser, err
 	}
-	defer func() { _ = stmt.Close() }()
+	defer tx.Rollback()
 
-	// Start a transaction
-	tx, err := u.db.Begin()
+	prepare, err := tx.Prepare("INSERT INTO users (name) VALUES ($1)  RETURNING id")
 	if err != nil {
 		return &models.NilUser, err
 	}
 
 	var insertedID int64
-	if err = tx.Stmt(stmt).QueryRow(name).Scan(&insertedID); err != nil {
-		// Rollback the transaction if an error occurs
-		_ = tx.Rollback()
+	if err = prepare.QueryRow(name).Scan(&insertedID); err != nil {
 		return &models.NilUser, err
 	}
 
