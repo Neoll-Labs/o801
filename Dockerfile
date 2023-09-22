@@ -13,7 +13,7 @@ RUN go mod download
 COPY ./ ./
 
 # Run tests
-RUN #CGO_ENABLED=0  go test -timeout 30s -v ./...
+RUN CGO_ENABLED=0 go test -timeout 30s -v ./...
 
 # Build the executable
 RUN CGO_ENABLED=0 go build -o /app ./cmd
@@ -23,10 +23,6 @@ FROM gcr.io/distroless/static AS prod
 
 USER nonroot:nonroot
 
-# db migrations
-COPY --from=build --chown=nonroot:nonroot /src/db/migrations /db/migrations
-# openapi definition
-COPY --from=build --chown=nonroot:nonroot /src/api /api
 # copy compiled app
 COPY --from=build --chown=nonroot:nonroot /app /app
 

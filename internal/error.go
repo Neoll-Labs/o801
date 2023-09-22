@@ -105,7 +105,8 @@ func DefaultErrorHandler(w http.ResponseWriter, _ *http.Request, err error, resu
 func EncodeJSONResponse(status *int, w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	if status != nil {
-		w.WriteHeader(*status)
+		code := *status
+		w.WriteHeader(code)
 	} else {
 		w.WriteHeader(http.StatusOK)
 	}

@@ -3,7 +3,6 @@ package db
 import (
 	"database/sql"
 	"errors"
-	"log"
 	"reflect"
 	"testing"
 
@@ -14,7 +13,7 @@ import (
 var beginError = errors.New("begin error")
 
 func TestExecuteTablesScriptsDBBeginError(t *testing.T) {
-	db := &MockDB{BeginFunc: func() (*sql.Tx, error) {
+	db := &mockDB{BeginFunc: func() (*sql.Tx, error) {
 		return nil, beginError
 	}}
 
@@ -26,7 +25,6 @@ func TestExecuteTablesScriptsDBBeginError(t *testing.T) {
 }
 
 func TestMigrateDB(t *testing.T) {
-
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
@@ -71,7 +69,6 @@ func TestMigrateSteps(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%s", err)
 	}
-	log.Println(m.queries)
 
 	err = mock.ExpectationsWereMet()
 	if err != nil {
@@ -80,26 +77,23 @@ func TestMigrateSteps(t *testing.T) {
 }
 
 func TestExecuteTablesScriptsCreateTableError(t *testing.T) {
-
-	db, mock, err := sqlmock.New()
+	db, _, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
 	}
 	defer db.Close()
 
 	ddl := "CREATE TABLE - with invalid sql"
-	mock.ExpectBegin()
-	mock.ExpectExec(ddl)
 
 	m := &migrate{db: db}
 	m.queries = []string{ddl}
-	err = m.executeTablesScripts()
 
+	err = m.executeTablesScripts()
 	assert.NotNilf(t, err, "expected an error, got %v", err)
 }
 
 func TestProcessStruct(t *testing.T) {
-	// Define a test model
+	// dummy test model
 	type dummytable struct {
 		ID        int    `sql:"type:serial,primary key"`
 		Name      string `sql:"type:varchar(255)"`
