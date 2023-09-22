@@ -109,7 +109,7 @@ func (s *UserHandlerAPI) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.UserCache[user.ID] = *user
+	s.AddToCache(user)
 
 	b, _ := json.Marshal(user)
 	_, _ = w.Write(b)

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -105,45 +106,67 @@ func TestUserHandlerAPI_Get_NotFound(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, rr.Code)
 }
 
-//func TestUserHandlerAPI_Create(t *testing.T) {
-//	// Create a test repository with a mock Create method
-//	mockRepo := &internal.MockRepository{}
-//	mockUser := &models.user{ID: 1, Name: "John"}
-//	mockRepo.On("Create").Return(mockUser, nil)
-//
-//	// Create a new UserHandlerAPI instance with the mock repository
-//	handler := NewUserServer(mockRepo)
-//
-//	// Create a test request for CreateUser (POST)
-//	createUserReq := struct {
-//		Name string
-//	}{Name: "Alice"}
-//
-//	// Encode the request body
-//	reqBody, err := json.Marshal(createUserReq)
-//	assert.NoError(t, err)
-//
-//	// Create a test request with the encoded body
-//	req := httptest.NewRequest("POST", "/user", bytes.NewBuffer(reqBody))
-//
-//	// Create a response recorder to capture the response
-//	rr := httptest.NewRecorder()
-//
-//	// Serve the request using the handler
-//	handler.Create(rr, req)
-//
-//	// Check the response status code (assert as needed)
-//	assert.Equal(t, http.StatusOK, rr.Code)
-//
-//	// Parse the response JSON and check its contents
-//	var responseUser models.user
-//	err = json.Unmarshal(rr.Body.Bytes(), &responseUser)
-//	assert.NoError(t, err)
-//	assert.Equal(t, mockUser, &responseUser)
-//
-//	// Assert that the mock repository's Create method was called
-//	//mockRepo.AssertCalled(t, "Create")
-//}
+func TestUserHandlerAPI_Create(t *testing.T) {
+	handler := NewUserServer(&UserFakeRepository{
+		user: mockUser,
+	})
+
+	createUserReq := struct {
+		Name string
+	}{Name: "nelson"}
+
+	// Encode the request body
+	reqBody, err := json.Marshal(createUserReq)
+	assert.NoError(t, err)
+
+	// Create a test request with the encoded body
+	req := httptest.NewRequest("POST", "/user", bytes.NewBuffer(reqBody))
+
+	// Create a response recorder to capture the response
+	rr := httptest.NewRecorder()
+
+	// Serve the request using the handler
+	handler.Create(rr, req)
+
+	// Check the response status code (assert as needed)
+	assert.Equal(t, http.StatusOK, rr.Code)
+
+	var responseUser models.User
+	err = json.Unmarshal(rr.Body.Bytes(), &responseUser)
+	assert.NoError(t, err)
+	assert.Equal(t, mockUser, &responseUser)
+}
+
+func TestUserHandlerAPI_Create_BadRequest(t *testing.T) {
+	handler := NewUserServer(&UserFakeRepository{})
+
+	req := httptest.NewRequest("POST", "/user", bytes.NewBuffer([]byte("invalid")))
+
+	rr := httptest.NewRecorder()
+	handler.Create(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestUserHandlerAPI_Create_Invalid(t *testing.T) {
+	handler := NewUserServer(&UserFakeRepository{
+		error: errors.New("DB error"),
+	})
+
+	createUserReq := struct {
+		Name string
+	}{Name: "Alice"}
+
+	// Encode the request body
+	reqBody, err := json.Marshal(createUserReq)
+	assert.NoError(t, err)
+	req := httptest.NewRequest("POST", "/user", bytes.NewBuffer(reqBody))
+
+	rr := httptest.NewRecorder()
+	handler.Create(rr, req)
+
+	assert.Equal(t, http.StatusBadGateway, rr.Code)
+}
 
 // You can add more test cases to cover error scenarios, invalid requests, and edge cases.
 
