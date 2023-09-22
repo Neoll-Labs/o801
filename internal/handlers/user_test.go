@@ -115,20 +115,15 @@ func TestUserHandlerAPI_Create(t *testing.T) {
 		Name string
 	}{Name: "nelson"}
 
-	// Encode the request body
 	reqBody, err := json.Marshal(createUserReq)
 	assert.NoError(t, err)
 
-	// Create a test request with the encoded body
 	req := httptest.NewRequest("POST", "/user", bytes.NewBuffer(reqBody))
 
-	// Create a response recorder to capture the response
 	rr := httptest.NewRecorder()
 
-	// Serve the request using the handler
 	handler.Create(rr, req)
 
-	// Check the response status code (assert as needed)
 	assert.Equal(t, http.StatusOK, rr.Code)
 
 	var responseUser models.User
@@ -157,7 +152,6 @@ func TestUserHandlerAPI_Create_Invalid(t *testing.T) {
 		Name string
 	}{Name: "Alice"}
 
-	// Encode the request body
 	reqBody, err := json.Marshal(createUserReq)
 	assert.NoError(t, err)
 	req := httptest.NewRequest("POST", "/user", bytes.NewBuffer(reqBody))
@@ -168,7 +162,7 @@ func TestUserHandlerAPI_Create_Invalid(t *testing.T) {
 	assert.Equal(t, http.StatusBadGateway, rr.Code)
 }
 
-// You can add more test cases to cover error scenarios, invalid requests, and edge cases.
+// mocks to run unit test
 
 type UserFakeRepository struct {
 	user  *models.User

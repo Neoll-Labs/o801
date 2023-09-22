@@ -116,7 +116,6 @@ func TestExecuteTablesScriptsCreateTableError(t *testing.T) {
 }
 
 func TestProcessStruct(t *testing.T) {
-	// dummy test model
 	type dummytable struct {
 		ID        int    `sql:"type:serial,primary key"`
 		Name      string `sql:"type:varchar(255)"`
@@ -124,11 +123,8 @@ func TestProcessStruct(t *testing.T) {
 		NoType    string
 	}
 
-	// Call processStruct with the test model
 	result := processStruct(dummytable{})
 
-	// Add assertions or checks based on the expected behavior of processStruct.
-	// For example, you can check if the result contains the expected table name and columns.
 	assert.Equal(t, result.Name, "dummytables")
 	assert.Equal(t, len(result.Columns), 3)
 	assert.Equal(t, len(result.Values), 3)

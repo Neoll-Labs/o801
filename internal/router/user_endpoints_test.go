@@ -12,48 +12,29 @@ import (
 )
 
 func TestRouter_UserEndpoints_GetUser(t *testing.T) {
-	// Create a new router
 	router := NewRouter()
-
-	// Create a test server
 	server := NewUserFakeServer(&UserFakeRepository{})
 	router.UserEndpoints(server)
-
-	// Define a test request for Get
 	req := httptest.NewRequest("GET", "/123", nil) // Assuming /{id} is the Get route
-
-	// Create a response recorder to capture the response
 	rr := httptest.NewRecorder()
 
-	// Serve the request using the router
 	router.ServeHTTP(rr, req)
 
-	// Check the response status code (assert as needed)
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.Equal(t, "Get", rr.Body.String())
 }
 
 func TestRouter_UserEndpoints_CreateUserEmtpyBody(t *testing.T) {
-	// Create a new router
 	router := NewRouter()
-
-	// Create a test server
 	server := NewUserFakeServer(&UserFakeRepository{})
 	router.UserEndpoints(server)
 
-	// Define a test request for Create (POST)
 	req := httptest.NewRequest("POST", "/", nil)
-
-	// Create a response recorder to capture the response
 	rr := httptest.NewRecorder()
-
-	// Serve the request using the router
 	router.ServeHTTP(rr, req)
 
-	// Check the response status code (assert as needed)
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.Equal(t, "Created", rr.Body.String())
-
 }
 
 func NewUserFakeServer(repo internal.Repository[*models.User]) internal.HandlerFuncAPI {
