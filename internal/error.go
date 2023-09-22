@@ -75,10 +75,10 @@ func (e *NotFoundError) Error() string {
 }
 
 // ErrorHandler defines the required method for handling error. You may implement it and inject this into a controller if
-type ErrorHandler func(w http.ResponseWriter, r *http.Request, err error, result *ImplResponse)
+type ErrorHandler func(w http.ResponseWriter, r *http.Request, err error)
 
 // DefaultErrorHandler defines the default logic on how to handle errors from the controller. Any errors from parsing
-func DefaultErrorHandler(w http.ResponseWriter, _ *http.Request, err error, result *ImplResponse) {
+func DefaultErrorHandler(w http.ResponseWriter, _ *http.Request, err error) {
 	if _, ok := err.(*ParsingError); ok {
 		// Handle parsing errors
 		log.Println(err.Error())
@@ -96,8 +96,7 @@ func DefaultErrorHandler(w http.ResponseWriter, _ *http.Request, err error, resu
 		_ = EncodeJSONResponse(func(i int) *int { return &i }(http.StatusNotFound), w)
 	} else {
 		// Handle all other errors
-		log.Println(err.Error())
-		_ = EncodeJSONResponse(&result.Code, w)
+		_ = EncodeJSONResponse(func(i int) *int { return &i }(http.StatusInternalServerError), w)
 	}
 }
 

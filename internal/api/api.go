@@ -9,6 +9,6 @@ import (
 )
 
 type ServicesAPIRouter interface {
-	GetOrCreateUser(http.ResponseWriter, *http.Request)
+	CreateUser(http.ResponseWriter, *http.Request)
 	GetUser(http.ResponseWriter, *http.Request)
 }

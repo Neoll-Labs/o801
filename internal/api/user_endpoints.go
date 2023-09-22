@@ -1,12 +1,11 @@
 package api
 
 import (
-	"github.com/nelsonstr/o801/internal/server"
+	"github.com/nelsonstr/o801/internal/handlers"
 	"net/http"
 )
 
-func (r *Router) UserEndpoints(s *server.Server) {
-
+func (r *Router) UserEndpoints(s *handlers.Server) {
 	r.Endpoint(http.MethodGet, "/(\\d+)+", s.GetUser)
 	r.Endpoint(http.MethodPost, "/", s.CreateUser)
 }

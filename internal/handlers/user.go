@@ -2,7 +2,7 @@
  license x
 */
 
-package server
+package handlers
 
 import (
 	"encoding/json"
@@ -42,12 +42,12 @@ func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 	ps := r.Context().Value("params").([]string)
 
 	if len(ps) < 2 {
-		s.errorHandler(w, r, &internal.BadRequestError{}, nil)
+		s.errorHandler(w, r, &internal.BadRequestError{})
 		return
 	}
 	id, err := strconv.Atoi(ps[1]) // ID
 	if err != nil {
-		s.errorHandler(w, r, &internal.BadRequestError{}, nil)
+		s.errorHandler(w, r, &internal.BadRequestError{})
 		return
 	}
 
@@ -63,11 +63,11 @@ func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	user, err := s.service.Get(r.Context(), id)
 	if err != nil {
-		s.errorHandler(w, r, &internal.StorageError{Err: err}, nil)
+		s.errorHandler(w, r, &internal.StorageError{Err: err})
 		return
 	}
 	if user == &models.NilUser {
-		s.errorHandler(w, r, &internal.NotFoundError{}, nil)
+		s.errorHandler(w, r, &internal.NotFoundError{})
 		return
 	}
 
@@ -84,13 +84,13 @@ func (s *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}{}
 
 	if err := json.NewDecoder(r.Body).Decode(&createUserReq); err != nil {
-		s.errorHandler(w, r, &internal.BadRequestError{}, nil)
+		s.errorHandler(w, r, &internal.BadRequestError{})
 		return
 	}
 
 	user, err := s.service.Create(r.Context(), createUserReq.Name)
 	if err != nil {
-		s.errorHandler(w, r, &internal.StorageError{Err: err}, nil)
+		s.errorHandler(w, r, &internal.StorageError{Err: err})
 		return
 	}
 

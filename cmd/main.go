@@ -6,7 +6,7 @@ package main
 
 import (
 	"errors"
-	s "github.com/nelsonstr/o801/internal/server"
+	s "github.com/nelsonstr/o801/internal/handlers"
 	"log"
 	"net/http"
 	"time"
