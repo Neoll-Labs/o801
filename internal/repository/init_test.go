@@ -2,7 +2,7 @@
  license x
 */
 
-package repsoitory
+package repository
 
 import (
 	"github.com/stretchr/testify/assert"

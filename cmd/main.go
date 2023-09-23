@@ -7,7 +7,7 @@ package main
 import (
 	"errors"
 	s "github.com/nelsonstr/o801/internal/handlers"
-	"github.com/nelsonstr/o801/internal/repsoitory"
+	"github.com/nelsonstr/o801/internal/repository"
 	"github.com/nelsonstr/o801/internal/router"
 	"log"
 	"net/http"
@@ -18,20 +18,20 @@ import (
 
 func main() {
 
-	dbc, err := repsoitory.InitDB()
+	dbc, err := repository.InitDB()
 	if err != nil {
 		log.Fatalf("db connection error: %v", err)
 	}
 	defer func() { _ = dbc.Close() }()
 
-	if err := repsoitory.MigrateDB(dbc); err != nil {
+	if err := repository.MigrateDB(dbc); err != nil {
 		log.Fatalf("db migration error: %v", err)
 	}
 
 	r := router.NewRouter()
 
 	v1 := r.Version(1)
-	v1.Resource("/users").UserEndpoints(s.NewUserServer(repsoitory.NewUserRepo(dbc)))
+	v1.Resource("/users").UserEndpoints(s.NewUserServer(repository.NewUserRepo(dbc)))
 
 	log.Printf("start server.")
 
