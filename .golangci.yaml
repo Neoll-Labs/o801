@@ -1,26 +1,30 @@
 run:
   skip-files:
   - main.go
-  skip-dirs:
-  - go
+
   timeout: 5m
+  tests: false
 # https://github.com/golangci/golangci-lint/blob/26dde52d69335ac008cae5ae4aefbee54c8b5b5a/.golangci.reference.yml
 linters:
   disable:
   - revive
   - varnamelen
   - depguard
-    #linters presets
+  - testpackage
+  - errchkjson
+  - exhaustruct
+  - godox
+  - tagalign
   presets:
   - bugs
   - error
   - complexity
   - performance
-  - format
+#  - format
   - comment
   - import
   - module
-    #    - sql
+  - sql
   - style
   - test
   - unused

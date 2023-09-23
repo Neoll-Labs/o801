@@ -33,6 +33,10 @@ func NewRouter() *Router {
 	}
 }
 
+type Parameters string
+
+const ParametersName Parameters = "o80l_params"
+
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	for _, route := range r.routes {
 		if req.Method != route.Method {
@@ -44,7 +48,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 
 		matches := route.Patterns.FindStringSubmatch(req.URL.Path)
-		ctx := context.WithValue(req.Context(), "params", matches)
+		ctx := context.WithValue(req.Context(), ParametersName, matches)
 
 		route.Handler.ServeHTTP(w, req.WithContext(ctx))
 

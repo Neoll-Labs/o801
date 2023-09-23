@@ -6,22 +6,31 @@ package repository
 
 import (
 	"database/sql"
-	"github.com/nelsonstr/o801/internal/config"
+	"fmt"
 	"time"
+
+	"github.com/nelsonstr/o801/internal/config"
+)
+
+const (
+	maxConnetions   = 100
+	maxIdleConns    = 0
+	connMaxLifetime = 60 * time.Second
 )
 
 func InitDB() (*sql.DB, error) {
-	dbc, err := sql.Open(config.DbDriver(), config.DbURL())
+	dbc, err := sql.Open(config.DBDriver(), config.DBURL())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open connection: %w", err)
 	}
 
-	dbc.SetMaxIdleConns(0)
-	dbc.SetMaxOpenConns(100)
-	dbc.SetConnMaxLifetime(60 * time.Second)
+	dbc.SetMaxIdleConns(maxIdleConns)
+
+	dbc.SetMaxOpenConns(maxConnetions)
+	dbc.SetConnMaxLifetime(connMaxLifetime)
 
 	if err := dbc.Ping(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to ping db: %w", err)
 	}
 
 	return dbc, nil

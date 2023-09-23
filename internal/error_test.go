@@ -6,10 +6,12 @@ package internal
 
 import (
 	"errors"
-	"github.com/stretchr/testify/assert"
 	"net/http"
-	"net/http/httptest"
 	"testing"
+
+	"net/http/httptest"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestErrorTypes(t *testing.T) {

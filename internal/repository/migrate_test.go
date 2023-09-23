@@ -17,6 +17,7 @@ import (
 var beginError = errors.New("begin error")
 
 func TestExecuteTablesScriptsDBBeginError(t *testing.T) {
+	t.Parallel()
 	db := &mockDB{BeginFunc: func() (*sql.Tx, error) {
 		return nil, beginError
 	}}
@@ -25,14 +26,16 @@ func TestExecuteTablesScriptsDBBeginError(t *testing.T) {
 
 	err := m.executeTablesScripts()
 
-	assert.Equal(t, beginError, err)
+	assert.Equal(t, errors.New("begin error"), errors.Unwrap(err))
 }
 
 func TestMigrateDB(t *testing.T) {
+	t.Parallel()
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
 	}
+
 	defer func() { _ = db.Close() }()
 
 	mock.ExpectBegin()
@@ -51,10 +54,12 @@ func TestMigrateDB(t *testing.T) {
 }
 
 func TestMigrateCreateTableError(t *testing.T) {
+	t.Parallel()
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
 	}
+
 	defer func() { _ = db.Close() }()
 
 	errTable := errors.New("create table error")
@@ -65,7 +70,7 @@ func TestMigrateCreateTableError(t *testing.T) {
 	mock.ExpectRollback()
 
 	err = MigrateDB(db)
-	assert.Equal(t, errTable, err)
+	assert.Equal(t, errTable, errors.Unwrap(err))
 
 	if err = mock.ExpectationsWereMet(); err != nil {
 		t.Fatalf("%s", err)
@@ -73,6 +78,7 @@ func TestMigrateCreateTableError(t *testing.T) {
 }
 
 func TestMigrateSteps(t *testing.T) {
+	t.Parallel()
 	type dummystrut struct {
 		ID   int    `sql:"type:serial,primary key"`
 		Name string `sql:"type:varchar(255)"`
@@ -82,6 +88,7 @@ func TestMigrateSteps(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
 	}
+
 	defer func() { _ = db.Close() }()
 
 	mock.ExpectBegin()
@@ -104,10 +111,12 @@ func TestMigrateSteps(t *testing.T) {
 }
 
 func TestExecuteTablesScriptsCreateTableError(t *testing.T) {
+	t.Parallel()
 	db, _, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
 	}
+
 	defer func() { _ = db.Close() }()
 
 	ddl := "CREATE TABLE - with invalid sql"
@@ -120,6 +129,7 @@ func TestExecuteTablesScriptsCreateTableError(t *testing.T) {
 }
 
 func TestProcessStruct(t *testing.T) {
+	t.Parallel()
 	type dummytable struct {
 		ID        int    `sql:"type:serial,primary key"`
 		Name      string `sql:"type:varchar(255)"`
@@ -139,6 +149,7 @@ func TestProcessStruct(t *testing.T) {
 }
 
 func TestGetTableName(t *testing.T) {
+	t.Parallel()
 	type TestStruct struct{}
 	testCases := []struct {
 		name     string
@@ -157,8 +168,11 @@ func TestGetTableName(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
+	for _, tp := range testCases {
+		tc := tp
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			result := getTableName(tc.input)
 			if result != tc.expected {
 				t.Errorf("Expected %s, but got %s", tc.expected, result)

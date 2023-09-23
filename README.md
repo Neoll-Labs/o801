@@ -23,7 +23,7 @@ docker run --rm -v C:/data/o801:/local openapitools/openapi-generator-cli:v7.0.0
 
 * create user
 ```shell
-curl 127.0.0.1:8080/api/v1/users/ -X POST -H 'accept: application/json' -H 'Content-Type: application/json' -d'{"Name": "nelson"}'
+curl 127.0.0.1:8080/api/v1/users/ -X POST -H 'accept: application/json' -H 'Content-Type: application/json' -d'{"name": "nelson"}'
 ```
 
 * get user

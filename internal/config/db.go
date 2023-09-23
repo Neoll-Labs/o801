@@ -11,7 +11,7 @@ const (
 	dbDriverDefault = "postgres"
 )
 
-func DbURL() string {
+func DBURL() string {
 	if v, exists := os.LookupEnv("DB_URL"); exists {
 		return v
 	}
@@ -19,7 +19,7 @@ func DbURL() string {
 	return dbURLDefault
 }
 
-func DbDriver() string {
+func DBDriver() string {
 	if v, exists := os.LookupEnv("DB_DRIVER"); exists {
 		return v
 	}

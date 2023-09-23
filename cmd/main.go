@@ -6,26 +6,27 @@ package main
 
 import (
 	"errors"
-	s "github.com/nelsonstr/o801/internal/handlers"
-	"github.com/nelsonstr/o801/internal/repository"
-	"github.com/nelsonstr/o801/internal/router"
 	"log"
 	"net/http"
 	"time"
 
 	_ "github.com/lib/pq"
+	s "github.com/nelsonstr/o801/internal/handlers"
+	"github.com/nelsonstr/o801/internal/repository"
+	"github.com/nelsonstr/o801/internal/router"
 )
 
 func main() {
 
 	dbc, err := repository.InitDB()
 	if err != nil {
-		log.Fatalf("db connection error: %v", err)
+		log.Fatalf("db connection error: %s", err)
 	}
+
 	defer func() { _ = dbc.Close() }()
 
 	if err := repository.MigrateDB(dbc); err != nil {
-		log.Fatalf("db migration error: %v", err)
+		log.Fatalf("db migration error: %s", err)
 	}
 
 	r := router.NewRouter()

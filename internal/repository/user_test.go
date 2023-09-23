@@ -7,13 +7,15 @@ package repository
 import (
 	"context"
 	"errors"
+	"testing"
+
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/nelsonstr/o801/models"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func Test_CreateUser(t *testing.T) {
+	t.Parallel()
 	db := &mockDB{}
 	repo := NewUserRepo(db)
 
@@ -21,11 +23,13 @@ func Test_CreateUser(t *testing.T) {
 }
 
 func TestCreateUserSuccess(t *testing.T) {
+	t.Parallel()
 	// given
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
 	}
+
 	defer func() { _ = db.Close() }()
 
 	mock.ExpectBegin()
@@ -54,11 +58,13 @@ func TestCreateUserSuccess(t *testing.T) {
 }
 
 func TestCreateUserBeginError(t *testing.T) {
+	t.Parallel()
 	// given
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
 	}
+
 	defer func() { _ = db.Close() }()
 
 	mock.ExpectBegin().WillReturnError(errors.New("error"))
@@ -68,7 +74,7 @@ func TestCreateUserBeginError(t *testing.T) {
 	user, err := userStorage.Create(context.Background(), "name")
 
 	// then
-	assert.Equal(t, err, errors.New("error"))
+	assert.Equal(t, errors.Unwrap(err), errors.New("error"))
 	assert.Equal(t, user, &models.NilUser)
 
 	err = mock.ExpectationsWereMet()
@@ -78,11 +84,13 @@ func TestCreateUserBeginError(t *testing.T) {
 }
 
 func TestCreateUserPrepareError(t *testing.T) {
+	t.Parallel()
 	// given
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
 	}
+
 	defer func() { _ = db.Close() }()
 
 	mock.ExpectBegin()
@@ -98,7 +106,7 @@ func TestCreateUserPrepareError(t *testing.T) {
 	user, err := userStorage.Create(context.Background(), name)
 
 	// then
-	assert.Equal(t, err, errors.New("error"))
+	assert.Equal(t, errors.Unwrap(err), errors.New("error"))
 	assert.Equal(t, user, &models.NilUser)
 
 	err = mock.ExpectationsWereMet()
@@ -108,11 +116,13 @@ func TestCreateUserPrepareError(t *testing.T) {
 }
 
 func TestCreateUserErrorInsertError(t *testing.T) {
+	t.Parallel()
 	// given
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
 	}
+
 	defer func() { _ = db.Close() }()
 
 	mock.ExpectBegin()
@@ -130,7 +140,7 @@ func TestCreateUserErrorInsertError(t *testing.T) {
 	user, err := userStorage.Create(context.Background(), name)
 
 	// then
-	assert.Equal(t, err, errors.New("error"))
+	assert.Equal(t, errors.Unwrap(err), errors.New("error"))
 	assert.Equal(t, user, &models.NilUser)
 
 	err = mock.ExpectationsWereMet()
@@ -140,11 +150,13 @@ func TestCreateUserErrorInsertError(t *testing.T) {
 }
 
 func TestCreateUsesCommitError(t *testing.T) {
+	t.Parallel()
 	// given
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
 	}
+
 	defer func() { _ = db.Close() }()
 
 	mock.ExpectBegin()
@@ -162,7 +174,8 @@ func TestCreateUsesCommitError(t *testing.T) {
 	user, err := userStorage.Create(context.Background(), name)
 
 	// then
-	assert.Equal(t, err, errors.New("error"))
+	assert.Error(t, err)
+	assert.Equal(t, errors.Unwrap(err), errors.New("error"))
 	assert.Equal(t, user, &models.NilUser)
 
 	err = mock.ExpectationsWereMet()
@@ -172,11 +185,13 @@ func TestCreateUsesCommitError(t *testing.T) {
 }
 
 func TestGetUserSuccess(t *testing.T) {
+	t.Parallel()
 	// given
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
 	}
+
 	defer func() { _ = db.Close() }()
 
 	row := sqlmock.NewRows([]string{"id", "name"}).
@@ -201,11 +216,13 @@ func TestGetUserSuccess(t *testing.T) {
 }
 
 func TestGetUserNotFound(t *testing.T) {
+	t.Parallel()
 	// given
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
 	}
+
 	defer func() { _ = db.Close() }()
 
 	row := sqlmock.NewRows([]string{"id", "name"})
@@ -228,11 +245,13 @@ func TestGetUserNotFound(t *testing.T) {
 }
 
 func TestGetUserError(t *testing.T) {
+	t.Parallel()
 	// given
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error'%s' was not expected when opening a stub database connection", err)
 	}
+
 	defer func() { _ = db.Close() }()
 
 	mock.ExpectQuery("^select id, name from users where id = \\$1$").

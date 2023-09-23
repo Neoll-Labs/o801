@@ -5,12 +5,13 @@
 package config
 
 import (
-	"os"
 	"testing"
 )
 
 func TestDbURL(t *testing.T) {
+
 	const env = "DB_URL"
+
 	tests := []struct {
 		name   string
 		want   string
@@ -27,20 +28,21 @@ func TestDbURL(t *testing.T) {
 			want:   "new URL value",
 		},
 	}
-	for _, tt := range tests {
+	for _, tp := range tests {
+		tt := tp
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.newURL != "" {
-				_ = os.Setenv(env, tt.newURL)
+				t.Setenv(env, tt.newURL)
 			}
-			if got := DbURL(); got != tt.want {
-				t.Errorf("DbURL() = %v, want %v", got, tt.want)
+			if got := DBURL(); got != tt.want {
+				t.Errorf("DBURL() = %v, want %v", got, tt.want)
 			}
-			_ = os.Unsetenv(env)
 		})
 	}
 }
 
 func TestDbDriver(t *testing.T) {
+
 	const env = "DB_DRIVER"
 
 	tests := []struct {
@@ -59,16 +61,16 @@ func TestDbDriver(t *testing.T) {
 			want: "new driver value",
 		},
 	}
-	for _, tt := range tests {
+	for _, tp := range tests {
+		tt := tp
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.new != "" {
-				_ = os.Setenv(env, tt.new)
+				t.Setenv(env, tt.new)
 			}
-			if got := DbDriver(); got != tt.want {
-				t.Errorf("DbDriver() = %v, want %v", got, tt.want)
+			if got := DBDriver(); got != tt.want {
+				t.Errorf("DBDriver() = %v, want %v", got, tt.want)
 			}
-			_ = os.Unsetenv(env)
 		})
 	}
 }

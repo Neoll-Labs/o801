@@ -6,35 +6,38 @@ package router
 
 import (
 	"context"
-	"github.com/nelsonstr/o801/api"
-	"github.com/nelsonstr/o801/internal"
-	"github.com/nelsonstr/o801/models"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"sync"
 	"testing"
+
+	"github.com/nelsonstr/o801/api"
+	"github.com/nelsonstr/o801/internal"
+	"github.com/nelsonstr/o801/models"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRouter_UserEndpoints_GetUser(t *testing.T) {
+	t.Parallel()
 	router := NewRouter()
 	server := NewUserFakeServer(&UserFakeRepository{})
 	router.UserEndpoints(server)
-	req := httptest.NewRequest("GET", "/123", nil) // Assuming /{id} is the Get route
+	req := httptest.NewRequest(http.MethodGet, "/123", http.NoBody) // Assuming /{id} is the Get route
 	rr := httptest.NewRecorder()
 
 	router.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.Equal(t, "Get", rr.Body.String())
+	assert.Equal(t, http.MethodGet, rr.Body.String())
 }
 
 func TestRouter_UserEndpoints_CreateUserEmtpyBody(t *testing.T) {
+	t.Parallel()
 	router := NewRouter()
 	server := NewUserFakeServer(&UserFakeRepository{})
 	router.UserEndpoints(server)
 
-	req := httptest.NewRequest("POST", "/", nil)
+	req := httptest.NewRequest(http.MethodPost, "/", http.NoBody)
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
 
@@ -63,7 +66,7 @@ func (f *FakeHandlerAPI) Create(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (f *FakeHandlerAPI) Get(w http.ResponseWriter, _ *http.Request) {
-	_, _ = w.Write([]byte("Get"))
+	_, _ = w.Write([]byte(http.MethodGet))
 }
 
 var _ api.Repository[*models.User] = (*UserFakeRepository)(nil)

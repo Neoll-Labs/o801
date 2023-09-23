@@ -109,6 +109,12 @@ repos:
   - id: pretty-format-yaml
     args: [--autofix, --indent, '2']
 
+- repo: https://github.com/golangci/golangci-lint
+  rev: v1.54.2
+  hooks:
+  - id: golangci-lint
+
+
 - repo: https://github.com/Lucas-C/pre-commit-hooks
   rev: v1.4.2
   hooks:

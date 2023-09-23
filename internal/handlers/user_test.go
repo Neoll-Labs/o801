@@ -9,23 +9,26 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/nelsonstr/o801/models"
-	"github.com/stretchr/testify/assert"
+	"github.com/nelsonstr/o801/internal/router"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/nelsonstr/o801/models"
+	"github.com/stretchr/testify/assert"
 )
 
 var mockUser = &models.User{ID: 14, Name: "nelson"}
 
 func TestUserHandlerAPI_Get_Success(t *testing.T) {
+	t.Parallel()
 	handler := NewUserServer(&UserFakeRepository{
 		user: mockUser,
 	})
-	req := httptest.NewRequest("GET", "/user/1", nil)
+	req := httptest.NewRequest(http.MethodGet, "/user/1", http.NoBody)
 	rr := httptest.NewRecorder()
 
-	ctx := context.WithValue(req.Context(), "params", []string{"/api/user", "1"})
+	ctx := context.WithValue(req.Context(), router.ParametersName, []string{"/api/user", "1"})
 	handler.Get(rr, req.WithContext(ctx))
 
 	assert.Equal(t, http.StatusOK, rr.Code)
@@ -38,39 +41,42 @@ func TestUserHandlerAPI_Get_Success(t *testing.T) {
 }
 
 func TestUserHandlerAPI_Get_InvalidParameters(t *testing.T) {
+	t.Parallel()
 	handler := NewUserServer(&UserFakeRepository{
 		user: mockUser,
 	})
-	req := httptest.NewRequest("GET", "/user/1", nil)
+	req := httptest.NewRequest(http.MethodGet, "/user/1", http.NoBody)
 	rr := httptest.NewRecorder()
 
-	ctx := context.WithValue(req.Context(), "params", []string{})
+	ctx := context.WithValue(req.Context(), router.ParametersName, []string{})
 	handler.Get(rr, req.WithContext(ctx))
 
 	assert.Equal(t, http.StatusBadRequest, rr.Code)
 }
 
 func TestUserHandlerAPI_Get_InvalidID(t *testing.T) {
+	t.Parallel()
 	handler := NewUserServer(&UserFakeRepository{
 		user: mockUser,
 	})
-	req := httptest.NewRequest("GET", "/user/1", nil)
+	req := httptest.NewRequest(http.MethodGet, "/user/1", http.NoBody)
 	rr := httptest.NewRecorder()
 
-	ctx := context.WithValue(req.Context(), "params", []string{"/api/user", "a"})
+	ctx := context.WithValue(req.Context(), router.ParametersName, []string{"/api/user", "a"})
 	handler.Get(rr, req.WithContext(ctx))
 
 	assert.Equal(t, http.StatusBadRequest, rr.Code)
 }
 
 func TestUserHandlerAPI_Get_FromCache(t *testing.T) {
+	t.Parallel()
 	handler := NewUserServer(&UserFakeRepository{
 		user: mockUser,
 	})
-	req := httptest.NewRequest("GET", "/user/1", nil)
+	req := httptest.NewRequest(http.MethodGet, "/user/1", http.NoBody)
 	rr := httptest.NewRecorder()
 
-	ctx := context.WithValue(req.Context(), "params", []string{"/api/user", "14"})
+	ctx := context.WithValue(req.Context(), router.ParametersName, []string{"/api/user", "14"})
 	handler.Get(rr, req.WithContext(ctx))
 
 	rr = httptest.NewRecorder()
@@ -85,32 +91,35 @@ func TestUserHandlerAPI_Get_FromCache(t *testing.T) {
 }
 
 func TestUserHandlerAPI_Get_DBError(t *testing.T) {
+	t.Parallel()
 	handler := NewUserServer(&UserFakeRepository{
 		error: errors.New("DB error"),
 	})
-	req := httptest.NewRequest("GET", "/user/1", nil)
+	req := httptest.NewRequest(http.MethodGet, "/user/1", http.NoBody)
 	rr := httptest.NewRecorder()
 
-	ctx := context.WithValue(req.Context(), "params", []string{"/api/user", "14"})
+	ctx := context.WithValue(req.Context(), router.ParametersName, []string{"/api/user", "14"})
 	handler.Get(rr, req.WithContext(ctx))
 
 	assert.Equal(t, http.StatusBadGateway, rr.Code)
 }
 
 func TestUserHandlerAPI_Get_NotFound(t *testing.T) {
+	t.Parallel()
 	handler := NewUserServer(&UserFakeRepository{
 		user: &models.NilUser,
 	})
-	req := httptest.NewRequest("GET", "/user/1", nil)
+	req := httptest.NewRequest(http.MethodGet, "/user/1", http.NoBody)
 	rr := httptest.NewRecorder()
 
-	ctx := context.WithValue(req.Context(), "params", []string{"/api/user", "14"})
+	ctx := context.WithValue(req.Context(), router.ParametersName, []string{"/api/user", "14"})
 	handler.Get(rr, req.WithContext(ctx))
 
 	assert.Equal(t, http.StatusNotFound, rr.Code)
 }
 
 func TestUserHandlerAPI_Create(t *testing.T) {
+	t.Parallel()
 	handler := NewUserServer(&UserFakeRepository{
 		user: mockUser,
 	})
@@ -122,7 +131,7 @@ func TestUserHandlerAPI_Create(t *testing.T) {
 	reqBody, err := json.Marshal(createUserReq)
 	assert.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/user", bytes.NewBuffer(reqBody))
+	req := httptest.NewRequest(http.MethodPost, "/user", bytes.NewBuffer(reqBody))
 
 	rr := httptest.NewRecorder()
 
@@ -137,9 +146,10 @@ func TestUserHandlerAPI_Create(t *testing.T) {
 }
 
 func TestUserHandlerAPI_Create_BadRequest(t *testing.T) {
+	t.Parallel()
 	handler := NewUserServer(&UserFakeRepository{})
 
-	req := httptest.NewRequest("POST", "/user", bytes.NewBuffer([]byte("invalid")))
+	req := httptest.NewRequest(http.MethodPost, "/user", bytes.NewBuffer([]byte("invalid")))
 
 	rr := httptest.NewRecorder()
 	handler.Create(rr, req)
@@ -148,6 +158,7 @@ func TestUserHandlerAPI_Create_BadRequest(t *testing.T) {
 }
 
 func TestUserHandlerAPI_Create_Invalid(t *testing.T) {
+	t.Parallel()
 	handler := NewUserServer(&UserFakeRepository{
 		error: errors.New("DB error"),
 	})
@@ -158,7 +169,7 @@ func TestUserHandlerAPI_Create_Invalid(t *testing.T) {
 
 	reqBody, err := json.Marshal(createUserReq)
 	assert.NoError(t, err)
-	req := httptest.NewRequest("POST", "/user", bytes.NewBuffer(reqBody))
+	req := httptest.NewRequest(http.MethodPost, "/user", bytes.NewBuffer(reqBody))
 
 	rr := httptest.NewRecorder()
 	handler.Create(rr, req)

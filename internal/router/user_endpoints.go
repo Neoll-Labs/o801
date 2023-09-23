@@ -5,8 +5,9 @@
 package router
 
 import (
-	"github.com/nelsonstr/o801/api"
 	"net/http"
+
+	"github.com/nelsonstr/o801/api"
 )
 
 func (r *Router) UserEndpoints(s api.HandlerFuncAPI) {

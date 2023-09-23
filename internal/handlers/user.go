@@ -6,12 +6,13 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/nelsonstr/o801/api"
 	"net/http"
 	"strconv"
 	"sync"
 
+	"github.com/nelsonstr/o801/api"
 	"github.com/nelsonstr/o801/internal"
+	"github.com/nelsonstr/o801/internal/router"
 	"github.com/nelsonstr/o801/models"
 )
 
@@ -21,9 +22,9 @@ var (
 	_ http.HandlerFunc = (*UserHandlerAPI)(nil).Create
 )
 
-func NewUserServer(repo api.Repository[*models.User]) api.HandlerFuncAPI {
+func NewUserServer(repo api.Repository[*models.User]) *UserHandlerAPI {
 	return &UserHandlerAPI{
-		Mutex:        sync.Mutex{},
+		mutex:        sync.Mutex{},
 		UserCache:    make(map[int64]models.User),
 		Repository:   repo,
 		ErrorHandler: internal.DefaultErrorHandler,
@@ -31,7 +32,7 @@ func NewUserServer(repo api.Repository[*models.User]) api.HandlerFuncAPI {
 }
 
 type UserHandlerAPI struct {
-	sync.Mutex
+	mutex        sync.Mutex
 	UserCache    map[int64]models.User
 	Repository   api.Repository[*models.User]
 	ErrorHandler internal.ErrorHandler
@@ -39,16 +40,30 @@ type UserHandlerAPI struct {
 
 // Get the user from the storage.
 func (s *UserHandlerAPI) Get(w http.ResponseWriter, r *http.Request) {
-	ps := r.Context().Value("params").([]string)
+	const (
+		expectedParameters = 2
+		parameterID        = 1
+	)
 
-	if len(ps) < 2 {
+	p := r.Context().Value(router.ParametersName)
+
+	ps, okParamsKind := p.([]string)
+	if !okParamsKind {
 		s.ErrorHandler(w, r, &internal.ParsingError{})
+
 		return
 	}
 
-	id, err := strconv.Atoi(ps[1]) // ID
+	if len(ps) < expectedParameters {
+		s.ErrorHandler(w, r, &internal.ParsingError{})
+
+		return
+	}
+
+	id, err := strconv.Atoi(ps[parameterID]) // ID
 	if err != nil {
 		s.ErrorHandler(w, r, &internal.ParsingError{})
+
 		return
 	}
 
@@ -63,10 +78,13 @@ func (s *UserHandlerAPI) Get(w http.ResponseWriter, r *http.Request) {
 	user, err = s.Repository.Get(r.Context(), id)
 	if err != nil {
 		s.ErrorHandler(w, r, &internal.StorageError{Err: err})
+
 		return
 	}
+
 	if user == &models.NilUser {
 		s.ErrorHandler(w, r, &internal.NotFoundError{})
+
 		return
 	}
 
@@ -77,36 +95,39 @@ func (s *UserHandlerAPI) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *UserHandlerAPI) AddToCache(user *models.User) {
-	s.Mutex.Lock()
-	defer s.Mutex.Unlock()
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	s.UserCache[user.ID] = *user
 }
 
 func (s *UserHandlerAPI) GetFromCached(id int) *models.User {
-	s.Mutex.Lock()
-	defer s.Mutex.Unlock()
-	u, exist := s.UserCache[int64(id)]
-	if !exist {
-		return &models.NilUser
+	s.mutex.Lock()
+
+	defer s.mutex.Unlock()
+
+	if u, exist := s.UserCache[int64(id)]; exist {
+		return &u
 	}
 
-	return &u
+	return &models.NilUser
 }
 
 // Create user.
 func (s *UserHandlerAPI) Create(w http.ResponseWriter, r *http.Request) {
 	createUserReq := struct {
-		Name string
+		Name string `json:"name"`
 	}{}
 
 	if err := json.NewDecoder(r.Body).Decode(&createUserReq); err != nil {
 		s.ErrorHandler(w, r, &internal.ParsingError{})
+
 		return
 	}
 
 	user, err := s.Repository.Create(r.Context(), createUserReq.Name)
 	if err != nil {
 		s.ErrorHandler(w, r, &internal.StorageError{Err: err})
+
 		return
 	}
 
@@ -114,6 +135,4 @@ func (s *UserHandlerAPI) Create(w http.ResponseWriter, r *http.Request) {
 
 	b, _ := json.Marshal(user)
 	_, _ = w.Write(b)
-
-	return
 }

@@ -13,15 +13,16 @@ import (
 )
 
 func TestRouter_ServeHTTP(t *testing.T) {
+	t.Parallel()
 	router := NewRouter()
 
 	testHandler := func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}
 
-	router.Endpoint("GET", "/test", testHandler)
+	router.Endpoint(http.MethodGet, "/test", testHandler)
 
-	req := httptest.NewRequest("GET", "/test", nil)
+	req := httptest.NewRequest(http.MethodGet, "/test", http.NoBody)
 
 	rr := httptest.NewRecorder()
 
@@ -31,39 +32,43 @@ func TestRouter_ServeHTTP(t *testing.T) {
 }
 
 func TestRouter_ServeHTTP404(t *testing.T) {
+	t.Parallel()
 	router := NewRouter()
 
 	testHandler := func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}
 
-	router.Endpoint("GET", "/test", testHandler)
-	req := httptest.NewRequest("GET", "/test404", nil)
+	router.Endpoint(http.MethodGet, "/test", testHandler)
+	req := httptest.NewRequest(http.MethodGet, "/test404", http.NoBody)
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusNotFound, rr.Code)
 }
 func TestRouter_Version(t *testing.T) {
+	t.Parallel()
 	router := NewRouter()
 	router.Version(1)
 	assert.Equal(t, "/api/v1", router.prefix)
 }
 
 func TestRouter_Resource(t *testing.T) {
+	t.Parallel()
 	router := NewRouter()
 	router.Resource("/users")
 	assert.Equal(t, "/users", router.resource)
 }
 
 func TestRouter_Endpoint(t *testing.T) {
+	t.Parallel()
 	router := NewRouter()
 	testHandler := func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}
 
-	router.Endpoint("GET", "/test", testHandler)
-	req := httptest.NewRequest("GET", "/test", nil)
+	router.Endpoint(http.MethodGet, "/test", testHandler)
+	req := httptest.NewRequest(http.MethodGet, "/test", http.NoBody)
 	rr := httptest.NewRecorder()
 
 	router.ServeHTTP(rr, req)
@@ -72,8 +77,9 @@ func TestRouter_Endpoint(t *testing.T) {
 }
 
 func TestRouter_ServeHTTP_NotFound(t *testing.T) {
+	t.Parallel()
 	router := NewRouter()
-	req := httptest.NewRequest("GET", "/undefined", nil)
+	req := httptest.NewRequest(http.MethodGet, "/undefined", http.NoBody)
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
 
@@ -81,14 +87,15 @@ func TestRouter_ServeHTTP_NotFound(t *testing.T) {
 }
 
 func TestRouter_ServeHTTP_WithParams(t *testing.T) {
+	t.Parallel()
 	router := NewRouter()
 	testHandler := func(w http.ResponseWriter, r *http.Request) {
-		params := r.Context().Value("params").([]string)
+		params := r.Context().Value(ParametersName).([]string)
 		assert.Equal(t, "123", params[1])
 		w.WriteHeader(http.StatusOK)
 	}
-	router.Endpoint("GET", "/test/([0-9]+)", testHandler)
-	req := httptest.NewRequest("GET", "/test/123", nil)
+	router.Endpoint(http.MethodGet, "/test/([0-9]+)", testHandler)
+	req := httptest.NewRequest(http.MethodGet, "/test/123", http.NoBody)
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
 
