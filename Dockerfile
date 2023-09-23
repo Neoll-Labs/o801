@@ -1,5 +1,5 @@
 # STAGE 1: building the executable
-FROM golang:1.20-alpine AS build
+FROM golang:1.21-alpine AS build
 
 WORKDIR /src
 
