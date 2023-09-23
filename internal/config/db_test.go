@@ -1,3 +1,7 @@
+/*
+ license x
+*/
+
 package config
 
 import (

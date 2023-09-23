@@ -1,3 +1,7 @@
+/*
+ license x
+*/
+
 package strings
 
 // Plural appends a 's' to the string

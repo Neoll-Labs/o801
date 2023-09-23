@@ -3,30 +3,30 @@ name: Build and Deploy
 on:
   push:
     branches:
-      - main
+    - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Cache Docker layers
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.docker
-          key: docker-layers-${{ runner.os }}
-          restore-keys: docker-layers-
+    - name: Cache Docker layers
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.docker
+        key: docker-layers-${{ runner.os }}
+        restore-keys: docker-layers-
 
-      - name: Build and push Docker image
+    - name: Build and push Docker image
         #        env:
         #          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         #          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        run: |
-          docker build -t your-docker-image-name .
+      run: |
+        docker build -t your-docker-image-name .
   #          docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
   #          docker tag your-docker-image-name:latest your-dockerhub-username/your-docker-image-name:latest
   #          docker push your-dockerhub-username/your-docker-image-name:latest
@@ -35,57 +35,57 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.21
 
-      - name: Cache Go dependencies
-        uses: actions/cache@v2
-        with:
-          path: ${{ env.GOPATH }}/pkg/mod
-          key: go-dependencies-${{ hashFiles('**/*.mod', '**/*.sum') }}
-          restore-keys: go-dependencies-
+    - name: Cache Go dependencies
+      uses: actions/cache@v2
+      with:
+        path: ${{ env.GOPATH }}/pkg/mod
+        key: go-dependencies-${{ hashFiles('**/*.mod', '**/*.sum') }}
+        restore-keys: go-dependencies-
 
-      - name: Install dependencies and run tests
-        run: |
-          go get -v -t -d ./...
-          go test -v -coverprofile=coverage.out ./...
+    - name: Install dependencies and run tests
+      run: |
+        go get -v -t -d ./...
+        go test -v -coverprofile=coverage.out ./...
 
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v2
-        with:
-          name: coverage-report
-          path: coverage.out
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v2
+      with:
+        name: coverage-report
+        path: coverage.out
 
   pre-commit:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Install pre-commit
-        run: |
-          pip install pre-commit
+    - name: Install pre-commit
+      run: |
+        pip install pre-commit
 
-      - name: Run pre-commit checks
-        run: |
-          pre-commit run --all-files
+    - name: Run pre-commit checks
+      run: |
+        pre-commit run --all-files
 
-      - name: Capture pre-commit output
-        id: pre-commit-output
-        run: |
-          output=$(pre-commit run --all-files)
-          error_count=$(echo "$output" | grep -c "ERROR:")
-          warning_count=$(echo "$output" | grep -c "WARNING:")
-          echo "::set-output name=errors::$error_count"
-          echo "::set-output name=warnings::$warning_count"
+    - name: Capture pre-commit output
+      id: pre-commit-output
+      run: |
+        output=$(pre-commit run --all-files)
+        error_count=$(echo "$output" | grep -c "ERROR:")
+        warning_count=$(echo "$output" | grep -c "WARNING:")
+        echo "::set-output name=errors::$error_count"
+        echo "::set-output name=warnings::$warning_count"
 
-      - name: Display pre-commit results
-        run: |
-          echo "Pre-commit errors: ${{ steps.pre-commit-output.outputs.errors }}"
-          echo "Pre-commit warnings: ${{ steps.pre-commit-output.outputs.warnings }}"
+    - name: Display pre-commit results
+      run: |
+        echo "Pre-commit errors: ${{ steps.pre-commit-output.outputs.errors }}"
+        echo "Pre-commit warnings: ${{ steps.pre-commit-output.outputs.warnings }}"
