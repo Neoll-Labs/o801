@@ -2,7 +2,7 @@ exclude: vendor
 
 repos:
 - repo: https://github.com/qoomon/git-conventional-commits
-  rev: v2.6.3
+  rev: v2.6.5
   hooks:
   - id: conventional-commits
 - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -24,7 +24,7 @@ repos:
     - $schema,name,private,version,main,repository,scripts,jest,dependencies,devDependencies
 
 - repo: https://github.com/zricethezav/gitleaks
-  rev: v8.16.1
+  rev: v8.18.0
   hooks:
   - id: gitleaks
   - id: gitleaks-docker
@@ -32,14 +32,14 @@ repos:
         # reference also
         # https://git.kernel.org/pub/scm/git/git.git/tree/Documentation/SubmittingPatches?h=v2.36.1#n181
 - repo: https://github.com/compilerla/conventional-pre-commit
-  rev: v2.1.1
+  rev: v2.4.0
   hooks:
   - id: conventional-pre-commit
     stages: [commit-msg]
     args: [feat, fix, ci, chore, test, build, docs, refactor, perf]
 
 - repo: https://github.com/igorshubovych/markdownlint-cli
-  rev: v0.33.0
+  rev: v0.37.0
   hooks:
   - id: markdownlint
     args:
@@ -50,13 +50,13 @@ repos:
     - --disable
     - MD013
 - repo: https://github.com/klieret/jekyll-relative-url-check
-  rev: v2.0.1
+  rev: v2.0.2
   hooks:
   - id: jekyll-relative-url-check-markdown
 
         # docker
 - repo: https://github.com/IamTheFij/docker-pre-commit
-  rev: v2.1.1
+  rev: v3.0.1
   hooks:
   - id: docker-compose-check
 
@@ -86,13 +86,13 @@ repos:
     - --allow-multiple-documents
 
 - repo: https://github.com/adrienverge/yamllint
-  rev: v1.30.0
+  rev: v1.32.0
   hooks:
   - id: yamllint
     args: [--format, parsable, --strict]
 
 - repo: https://github.com/python-jsonschema/check-jsonschema
-  rev: 0.22.0
+  rev: 0.26.3
   hooks:
   - id: check-github-actions                    # Validate GitHub Actions against the schema provided by SchemaStore
   - id: check-github-workflows                  # Validate GitHub Workflows against the schema provided by SchemaStore
@@ -104,7 +104,7 @@ repos:
   - id: check-gitlab-ci
 
 - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
-  rev: v2.8.0
+  rev: v2.10.0
   hooks:
   - id: pretty-format-yaml
     args: [--autofix, --indent, '2']
