@@ -13,8 +13,7 @@
 * Run the following command to start docker compose
 ```shell
 docker-compose up
-```
-
+``` 
 
 * validate openapi.yaml
 ```shell

@@ -5,7 +5,6 @@
 package internal
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -14,15 +13,10 @@ type ParsingError struct {
 	Err error
 }
 
-func (e *ParsingError) Unwrap() error {
-	return e.Err
-}
-
 func (e *ParsingError) Error() string {
 	return e.Err.Error()
 }
 
-// MethodNotAllowedError indicates that an error has occurred when parsing request parameters
 type MethodNotAllowedError struct {
 	Err error
 }
@@ -31,7 +25,6 @@ func (e *MethodNotAllowedError) Error() string {
 	return e.Err.Error()
 }
 
-// StorageError indicates that an error has occurred when parsing request parameters
 type StorageError struct {
 	Err error
 }
@@ -40,16 +33,6 @@ func (e *StorageError) Error() string {
 	return e.Err.Error()
 }
 
-// RequiredError indicates that an error has occurred when parsing request parameters
-type RequiredError struct {
-	Field string
-}
-
-func (e *RequiredError) Error() string {
-	return fmt.Sprintf("required field '%s' is zero value.", e.Field)
-}
-
-// NotFoundError indicates that an error has occurred when parsing request parameters
 type NotFoundError struct {
 	Err error
 }
@@ -68,10 +51,6 @@ func DefaultErrorHandler(w http.ResponseWriter, _ *http.Request, err error) {
 	switch err.(type) {
 	case *ParsingError:
 		statusCode = http.StatusBadRequest
-	case *RequiredError:
-		statusCode = http.StatusUnprocessableEntity
-	case *MethodNotAllowedError:
-		statusCode = http.StatusMethodNotAllowed
 	case *NotFoundError:
 		statusCode = http.StatusNotFound
 	case *StorageError:

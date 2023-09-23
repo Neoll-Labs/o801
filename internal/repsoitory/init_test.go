@@ -3,6 +3,7 @@ package repsoitory
 import (
 	"github.com/stretchr/testify/assert"
 	"os"
+	"strings"
 	"testing"
 
 	_ "github.com/lib/pq"
@@ -18,7 +19,9 @@ func TestInitDB_PingError(t *testing.T) {
 
 	// then
 	assert.Error(t, err)
-	assert.Equal(t, "dial tcp 127.0.0.1:9779: connect: connection refused", err.Error())
+	//running in container: "dial tcp 127.0.0.1:9779: connect: connection refused"
+	//running from command line: "dial tcp 127.0.0.1:9779: connectex: No connection could be made because the target machine actively refused it."
+	assert.True(t, strings.Contains(err.Error(), "dial tcp 127.0.0.1:9779: connect"))
 
 	_ = os.Unsetenv(env)
 }
