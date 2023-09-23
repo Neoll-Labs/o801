@@ -2,7 +2,7 @@
  license x
 */
 
-package internal
+package api
 
 import (
 	"context"

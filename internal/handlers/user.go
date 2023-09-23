@@ -6,6 +6,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"github.com/nelsonstr/o801/api"
 	"net/http"
 	"strconv"
 	"sync"
@@ -20,7 +21,7 @@ var (
 	_ http.HandlerFunc = (*UserHandlerAPI)(nil).Create
 )
 
-func NewUserServer(repo internal.Repository[*models.User]) internal.HandlerFuncAPI {
+func NewUserServer(repo api.Repository[*models.User]) api.HandlerFuncAPI {
 	return &UserHandlerAPI{
 		Mutex:        sync.Mutex{},
 		UserCache:    make(map[int64]models.User),
@@ -32,7 +33,7 @@ func NewUserServer(repo internal.Repository[*models.User]) internal.HandlerFuncA
 type UserHandlerAPI struct {
 	sync.Mutex
 	UserCache    map[int64]models.User
-	Repository   internal.Repository[*models.User]
+	Repository   api.Repository[*models.User]
 	ErrorHandler internal.ErrorHandler
 }
 

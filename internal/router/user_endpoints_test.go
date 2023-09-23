@@ -6,6 +6,7 @@ package router
 
 import (
 	"context"
+	"github.com/nelsonstr/o801/api"
 	"github.com/nelsonstr/o801/internal"
 	"github.com/nelsonstr/o801/models"
 	"github.com/stretchr/testify/assert"
@@ -41,7 +42,7 @@ func TestRouter_UserEndpoints_CreateUserEmtpyBody(t *testing.T) {
 	assert.Equal(t, "Created", rr.Body.String())
 }
 
-func NewUserFakeServer(repo internal.Repository[*models.User]) internal.HandlerFuncAPI {
+func NewUserFakeServer(repo api.Repository[*models.User]) api.HandlerFuncAPI {
 	return &FakeHandlerAPI{
 		Mutex:        sync.Mutex{},
 		UserCache:    make(map[int64]models.User),
@@ -53,7 +54,7 @@ func NewUserFakeServer(repo internal.Repository[*models.User]) internal.HandlerF
 type FakeHandlerAPI struct {
 	sync.Mutex
 	UserCache    map[int64]models.User
-	Repository   internal.Repository[*models.User]
+	Repository   api.Repository[*models.User]
 	ErrorHandler internal.ErrorHandler
 }
 
@@ -65,7 +66,7 @@ func (f *FakeHandlerAPI) Get(w http.ResponseWriter, _ *http.Request) {
 	_, _ = w.Write([]byte("Get"))
 }
 
-var _ internal.Repository[*models.User] = (*UserFakeRepository)(nil)
+var _ api.Repository[*models.User] = (*UserFakeRepository)(nil)
 
 type UserFakeRepository struct{}
 

@@ -6,7 +6,7 @@ package repsoitory
 
 import (
 	"context"
-	"github.com/nelsonstr/o801/internal"
+	"github.com/nelsonstr/o801/api"
 	"github.com/nelsonstr/o801/models"
 )
 
@@ -14,7 +14,7 @@ type UserRepository struct {
 	db DBInterface
 }
 
-var _ internal.Repository[*models.User] = (*UserRepository)(nil)
+var _ api.Repository[*models.User] = (*UserRepository)(nil)
 
 func NewUserRepo(db DBInterface) *UserRepository {
 	return &UserRepository{
