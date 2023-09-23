@@ -2,7 +2,7 @@ name: Performance Tests
 
 on:
   schedule:
-    - cron: "0 0 * * *"
+  - cron: 0 0 * * *
 
 jobs:
   performance-tests:
