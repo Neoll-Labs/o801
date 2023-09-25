@@ -1,7 +1,7 @@
 
 
 Open API documentation
-
+[OpenAPI documentation swagger](https://editor-next.swagger.io/?url=https://raw.githubusercontent.com/nelsonstr/o801/main/api/openapi.yaml)
 
 ## interfaces definition
 
@@ -36,8 +36,6 @@ There are two models for User:
 #### Starting docker compose
 
 * Run the following command to start docker compose
-
-
 
 ```shell
 docker-compose up
