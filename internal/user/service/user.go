@@ -1,90 +1,80 @@
+/*
+ license x
+*/
+
 package service
 
 import (
 	"context"
-	"github.com/nelsonstr/o801/api"
+
 	"github.com/nelsonstr/o801/internal"
+	"github.com/nelsonstr/o801/internal/interfaces"
 	"github.com/nelsonstr/o801/internal/model"
-	"sync"
 )
 
 type userService struct {
-	mutex        sync.Mutex
-	userCache    map[int64]User
-	repository   api.Repository[*model.User]
+	cache        interfaces.Cache[model.UserView]
+	repository   interfaces.Repository[*model.User]
 	errorHandler internal.ErrorHandler
 }
 
 var (
-	_ api.ServiceAPI[*User] = (*userService)(nil)
+	_ interfaces.ServiceAPI[*model.UserView] = (*userService)(nil)
 )
 
-func NewUserService(repo api.Repository[*model.User]) *userService {
+func NewUserService(repo interfaces.Repository[*model.User], cache interfaces.Cache[model.UserView]) *userService {
 	return &userService{
-		mutex:        sync.Mutex{},
-		userCache:    make(map[int64]User),
+		cache:        cache,
 		repository:   repo,
 		errorHandler: internal.DefaultErrorHandler,
 	}
 }
 
-func (s userService) Get(ctx context.Context, usr *User) (*User, error) {
-	if user := s.GetFromCache(usr.ID); user != NilUser {
-
+func (s userService) Get(ctx context.Context, usr *model.UserView) (*model.UserView, error) {
+	if user, exists := s.cache.Get(usr.ID); exists {
 		return &user, nil
 	}
 
-	mUser, err := s.repository.Fetch(ctx, &model.User{ID: usr.ID})
+	mUser, err := s.repository.Get(ctx, &model.User{ID: usr.ID})
 	if err != nil {
-		return &NilUser, err
+		return &model.NilUserView, &internal.StorageError{
+			Err: err,
+		}
 	}
 
 	if mUser == &model.NilUser {
-		return &NilUser, &internal.NotFoundError{}
+		return &model.NilUserView, &internal.NotFoundError{}
 	}
 
-	user := &User{
-		ID:   mUser.ID,
-		Name: mUser.Name,
-	}
+	chanUser := make(chan *model.UserView, 1)
 
-	s.AddToCache(*user)
+	s.cacheSet(chanUser, mUser)
 
-	return user, nil
+	return <-chanUser, nil
 }
 
-func (s userService) Create(ctx context.Context, usr *User) (*User, error) {
-
+func (s userService) Create(ctx context.Context, usr *model.UserView) (*model.UserView, error) {
 	mUser, err := s.repository.Create(ctx, &model.User{Name: usr.Name})
 	if err != nil {
-
-		return &NilUser, err
+		return &model.NilUserView, &internal.StorageError{
+			Err: err,
+		}
 	}
 
-	user := &User{
+	chanUser := make(chan *model.UserView, 1)
+
+	s.cacheSet(chanUser, mUser)
+
+	return <-chanUser, nil
+}
+
+func (s userService) cacheSet(userChan chan *model.UserView, mUser *model.User) {
+	user := &model.UserView{
 		ID:   mUser.ID,
 		Name: mUser.Name,
 	}
 
-	s.AddToCache(*user)
+	s.cache.Set(user.ID, user)
 
-	return user, nil
-}
-
-func (s *userService) AddToCache(user User) {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-	s.userCache[user.ID] = user
-}
-
-func (s *userService) GetFromCache(id int64) User {
-	s.mutex.Lock()
-
-	defer s.mutex.Unlock()
-
-	if u, exist := s.userCache[id]; exist {
-		return u
-	}
-
-	return NilUser
+	userChan <- user
 }

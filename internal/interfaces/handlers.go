@@ -2,7 +2,7 @@
  license x
 */
 
-package api
+package interfaces
 
 import (
 	"net/http"

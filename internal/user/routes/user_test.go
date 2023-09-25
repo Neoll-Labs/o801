@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"context"
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/nelsonstr/o801/internal/interfaces"
 	"github.com/nelsonstr/o801/internal/model"
 	router "github.com/nelsonstr/o801/internal/router"
 	"net/http"
@@ -15,20 +16,19 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/nelsonstr/o801/api"
 	"github.com/nelsonstr/o801/internal"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestRouter_UserEndpoints_GetUser(t *testing.T) {
 	t.Parallel()
-	router := router.NewRouter()
+	r := router.NewRouter()
 	server := NewMockService(&MockRepository{})
-	UserEndpoints(router, server)
-	req := httptest.NewRequest(http.MethodGet, "/123", http.NoBody) // Assuming /{id} is the Get route
+	UserEndpoints(r, server)
+	req := httptest.NewRequest(http.MethodGet, "/123", http.NoBody) // Assuming /{id} is the Read route
 	rr := httptest.NewRecorder()
 
-	router.ServeHTTP(rr, req)
+	r.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.Equal(t, http.MethodGet, rr.Body.String())
@@ -36,13 +36,13 @@ func TestRouter_UserEndpoints_GetUser(t *testing.T) {
 
 func TestRouter_UserEndpoints_CreateUserEmtpyBody(t *testing.T) {
 	t.Parallel()
-	router := router.NewRouter()
+	r := router.NewRouter()
 	server := NewMockService(&MockRepository{})
-	UserEndpoints(router, server)
+	UserEndpoints(r, server)
 
 	req := httptest.NewRequest(http.MethodPost, "/", http.NoBody)
 	rr := httptest.NewRecorder()
-	router.ServeHTTP(rr, req)
+	r.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.Equal(t, "Created", rr.Body.String())
@@ -111,7 +111,7 @@ func TestInitUserRoutes_Post(t *testing.T) {
 
 // MOCKS
 
-func NewMockService(repo api.Repository[*model.User]) *MockHandlerAPI {
+func NewMockService(repo interfaces.Repository[*model.User]) *MockHandlerAPI {
 	return &MockHandlerAPI{
 		Mutex:        sync.Mutex{},
 		UserCache:    make(map[int64]model.User),
@@ -123,7 +123,7 @@ func NewMockService(repo api.Repository[*model.User]) *MockHandlerAPI {
 type MockHandlerAPI struct {
 	sync.Mutex
 	UserCache    map[int64]model.User
-	Repository   api.Repository[*model.User]
+	Repository   interfaces.Repository[*model.User]
 	ErrorHandler internal.ErrorHandler
 }
 
@@ -145,6 +145,6 @@ func (f *MockRepository) Create(_ context.Context, _ *model.User) (*model.User, 
 	return f.user, f.error
 }
 
-func (f *MockRepository) Fetch(_ context.Context, _ *model.User) (*model.User, error) {
+func (f *MockRepository) Get(_ context.Context, _ *model.User) (*model.User, error) {
 	return f.user, f.error
 }

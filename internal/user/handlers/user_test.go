@@ -9,8 +9,8 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/nelsonstr/o801/internal"
+	userModel "github.com/nelsonstr/o801/internal/model"
 	"github.com/nelsonstr/o801/internal/router"
-	"github.com/nelsonstr/o801/internal/user/service"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var mockUser = &service.User{ID: 14, Name: "nelson"}
+var mockUser = &userModel.UserView{ID: 14, Name: "nelson"}
 
 func TestUserHandlerAPI_Get_Success(t *testing.T) {
 	t.Parallel()
@@ -33,7 +33,7 @@ func TestUserHandlerAPI_Get_Success(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, rr.Code)
 
-	var responseUser service.User
+	var responseUser userModel.UserView
 	err := json.Unmarshal(rr.Body.Bytes(), &responseUser)
 
 	assert.NoError(t, err)
@@ -97,7 +97,7 @@ func TestUserHandlerAPI_Get_FromCache(t *testing.T) {
 	handler.Get(rr, req.WithContext(ctx))
 	assert.Equal(t, http.StatusOK, rr.Code)
 
-	var responseUser service.User
+	var responseUser userModel.UserView
 	err := json.Unmarshal(rr.Body.Bytes(), &responseUser)
 
 	assert.NoError(t, err)
@@ -121,7 +121,7 @@ func TestUserHandlerAPI_Get_DBError(t *testing.T) {
 func TestUserHandlerAPI_Get_NotFound(t *testing.T) {
 	t.Parallel()
 	handler := NewUserHandler(&MockService{
-		user:  &service.NilUser,
+		user:  &userModel.NilUserView,
 		error: &internal.NotFoundError{},
 	})
 	req := httptest.NewRequest(http.MethodGet, "/user/1", http.NoBody)
@@ -154,7 +154,7 @@ func TestUserHandlerAPI_Create(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, rr.Code)
 
-	var responseUser service.User
+	var responseUser userModel.UserView
 	err = json.Unmarshal(rr.Body.Bytes(), &responseUser)
 	assert.NoError(t, err)
 	assert.Equal(t, mockUser, &responseUser)
@@ -194,14 +194,14 @@ func TestUserHandlerAPI_Create_Invalid(t *testing.T) {
 
 // MockService mocks to run unit test.
 type MockService struct {
-	user  *service.User
+	user  *userModel.UserView
 	error error
 }
 
-func (s *MockService) Create(_ context.Context, _ *service.User) (*service.User, error) {
+func (s *MockService) Create(_ context.Context, _ *userModel.UserView) (*userModel.UserView, error) {
 	return s.user, s.error
 }
 
-func (s *MockService) Get(_ context.Context, _ *service.User) (*service.User, error) {
+func (s *MockService) Get(_ context.Context, _ *userModel.UserView) (*userModel.UserView, error) {
 	return s.user, s.error
 }

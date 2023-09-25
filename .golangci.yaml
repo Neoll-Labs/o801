@@ -15,12 +15,12 @@ linters:
   - exhaustruct
   - godox
   - tagalign
+  - ireturn
   presets:
   - bugs
   - error
   - complexity
   - performance
-#  - format
   - comment
   - import
   - module

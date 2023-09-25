@@ -1,10 +1,20 @@
 
 
-* Docs
- 3 layers
-  * handers
-  * controllers
-  * repositories
+Open API documentation
+
+
+## interfaces definition
+
+* Handlers interface definition for creating and retrieving [Handlers](./internal/interfaces/handlers.go)
+* Service interface definition for creating and retrieving [Service](./internal/interfaces/service.go)
+* Cache interface definition for creating and retrieving [Cache](./internal/interfaces/cache.go)
+* Repository interface definition for creating and retrieving [Repository](./internal/interfaces/repository.go)
+
+## Models
+
+There are two models for User:
+* A [store model](./internal/models/user.go)
+* A [view model](./internal/models/user.go)
 
 
 [deepsource code](https://app.deepsource.com/gh/nelsonstr/o801)
@@ -18,7 +28,7 @@
 
 #### docker build container
 
- 
+
 ```shell
   docker build . --target=prod --tag=o801:latest
 ```

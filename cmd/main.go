@@ -6,7 +6,6 @@ package main
 
 import (
 	"errors"
-	"github.com/nelsonstr/o801/internal/user/routes"
 	"log"
 	"net/http"
 	"time"
@@ -14,6 +13,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/nelsonstr/o801/internal/repository"
 	"github.com/nelsonstr/o801/internal/router"
+	"github.com/nelsonstr/o801/internal/user/routes"
 )
 
 func main() {

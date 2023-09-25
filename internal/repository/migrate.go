@@ -7,11 +7,12 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"github.com/nelsonstr/o801/internal/model"
-	strings2 "github.com/nelsonstr/o801/strings"
 	"log"
 	"reflect"
 	"strings"
+
+	"github.com/nelsonstr/o801/internal/model"
+	strings2 "github.com/nelsonstr/o801/strings"
 )
 
 type migrate struct {
@@ -86,8 +87,8 @@ func readTags(tags string) map[string][]string {
 	return v
 }
 
-func (m *migrate) createTableScript(model any) {
-	mod := processStruct(model)
+func (m *migrate) createTableScript(s any) {
+	mod := processStruct(s)
 
 	var cols []string
 	for i := 0; i < len(mod.Columns); i++ {
@@ -99,14 +100,14 @@ func (m *migrate) createTableScript(model any) {
 	m.queries = append(m.queries, m.Query)
 }
 
-func processStruct(model any) *Table {
+func processStruct(s any) *Table {
 	tbl := &Table{
 		Values:  make(map[string]reflect.Value),
 		Columns: make([]Column, 0),
 	}
 
-	typ := reflect.TypeOf(model)
-	value := reflect.ValueOf(model)
+	typ := reflect.TypeOf(s)
+	value := reflect.ValueOf(s)
 
 	tbl.Name = getTableName(typ)
 

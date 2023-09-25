@@ -6,12 +6,13 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/nelsonstr/o801/api"
-	"github.com/nelsonstr/o801/internal"
-	"github.com/nelsonstr/o801/internal/router"
-	"github.com/nelsonstr/o801/internal/user/service"
 	"net/http"
 	"strconv"
+
+	"github.com/nelsonstr/o801/internal"
+	"github.com/nelsonstr/o801/internal/interfaces"
+	userModel "github.com/nelsonstr/o801/internal/model"
+	"github.com/nelsonstr/o801/internal/router"
 )
 
 // Interface assertions.
@@ -21,11 +22,11 @@ var (
 )
 
 type userHandler struct {
-	service      api.ServiceAPI[*service.User]
+	service      interfaces.ServiceAPI[*userModel.UserView]
 	ErrorHandler internal.ErrorHandler
 }
 
-func NewUserHandler(service api.ServiceAPI[*service.User]) *userHandler {
+func NewUserHandler(service interfaces.ServiceAPI[*userModel.UserView]) *userHandler {
 	return &userHandler{
 		service:      service,
 		ErrorHandler: internal.DefaultErrorHandler,
@@ -61,7 +62,7 @@ func (h *userHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.service.Get(r.Context(), &service.User{ID: int64(id)})
+	user, err := h.service.Get(r.Context(), &userModel.UserView{ID: int64(id)})
 	if err != nil {
 		h.ErrorHandler(w, r, err)
 
@@ -84,7 +85,7 @@ func (h *userHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.service.Create(r.Context(), &service.User{Name: createUserReq.Name})
+	user, err := h.service.Create(r.Context(), &userModel.UserView{Name: createUserReq.Name})
 	if err != nil {
 		h.ErrorHandler(w, r, &internal.StorageError{})
 
