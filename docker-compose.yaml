@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
       context: .
     environment:
-    - DBURL=postgres://postgres:postgres@db:5432/?sslmode=disable
+    - DB_URL=postgres://postgres:postgres@db:5432/?sslmode=disable
     ports:
     - 8080:8080
     depends_on:
