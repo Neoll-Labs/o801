@@ -46,6 +46,7 @@ func TestRouter_ServeHTTP404(t *testing.T) {
 
 	assert.Equal(t, http.StatusNotFound, rr.Code)
 }
+
 func TestRouter_Version(t *testing.T) {
 	t.Parallel()
 	router := NewRouter()
@@ -76,11 +77,17 @@ func TestRouter_Endpoint(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rr.Code)
 }
 
-func TestRouter_ServeHTTP_NotFound(t *testing.T) {
+func TestRouter_MethodNotMatch(t *testing.T) {
 	t.Parallel()
 	router := NewRouter()
-	req := httptest.NewRequest(http.MethodGet, "/undefined", http.NoBody)
+	testHandler := func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}
+
+	router.Endpoint(http.MethodGet, "/test", testHandler)
+	req := httptest.NewRequest(http.MethodPost, "/test", http.NoBody)
 	rr := httptest.NewRecorder()
+
 	router.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusNotFound, rr.Code)

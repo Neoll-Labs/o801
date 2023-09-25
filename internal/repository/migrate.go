@@ -7,12 +7,11 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"github.com/nelsonstr/o801/internal/model"
+	strings2 "github.com/nelsonstr/o801/strings"
 	"log"
 	"reflect"
 	"strings"
-
-	strings2 "github.com/nelsonstr/o801/internal/strings"
-	"github.com/nelsonstr/o801/models"
 )
 
 type migrate struct {
@@ -38,7 +37,7 @@ func MigrateDB(db DBInterface) error {
 
 	defer log.Printf("end migration.")
 
-	m.createTableScript(models.User{})
+	m.createTableScript(model.User{})
 
 	return m.executeTablesScripts()
 }

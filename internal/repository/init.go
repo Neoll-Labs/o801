@@ -8,8 +8,6 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
-
-	"github.com/nelsonstr/o801/internal/config"
 )
 
 const (
@@ -19,7 +17,7 @@ const (
 )
 
 func InitDB() (*sql.DB, error) {
-	dbc, err := sql.Open(config.DBDriver(), config.DBURL())
+	dbc, err := sql.Open(DBDriver(), DBURL())
 	if err != nil {
 		return nil, fmt.Errorf("failed to open connection: %w", err)
 	}

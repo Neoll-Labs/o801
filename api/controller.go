@@ -10,6 +10,6 @@ import (
 
 // Repository interface create and get.
 type Repository[T any] interface {
-	Create(context.Context, string) (T, error)
-	Get(context.Context, int) (T, error)
+	Create(context.Context, T) (T, error)
+	Fetch(context.Context, T) (T, error)
 }

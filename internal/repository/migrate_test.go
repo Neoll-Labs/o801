@@ -18,7 +18,7 @@ var beginError = errors.New("begin error")
 
 func TestExecuteTablesScriptsDBBeginError(t *testing.T) {
 	t.Parallel()
-	db := &mockDB{BeginFunc: func() (*sql.Tx, error) {
+	db := &MockDB{BeginFunc: func() (*sql.Tx, error) {
 		return nil, beginError
 	}}
 

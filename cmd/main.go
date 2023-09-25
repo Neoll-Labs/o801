@@ -6,12 +6,12 @@ package main
 
 import (
 	"errors"
+	"github.com/nelsonstr/o801/internal/user/routes"
 	"log"
 	"net/http"
 	"time"
 
 	_ "github.com/lib/pq"
-	s "github.com/nelsonstr/o801/internal/handlers"
 	"github.com/nelsonstr/o801/internal/repository"
 	"github.com/nelsonstr/o801/internal/router"
 )
@@ -30,9 +30,9 @@ func main() {
 	}
 
 	r := router.NewRouter()
-
 	v1 := r.Version(1)
-	v1.Resource("/users").UserEndpoints(s.NewUserServer(repository.NewUserRepo(dbc)))
+
+	routes.InitUserRoutes(dbc, v1)
 
 	log.Printf("start server.")
 

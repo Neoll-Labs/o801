@@ -2,7 +2,7 @@
  license x
 */
 
-package config
+package repository
 
 import (
 	"testing"

@@ -7,17 +7,17 @@ package repository
 import (
 	"context"
 	"errors"
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/nelsonstr/o801/internal/model"
 	"testing"
 
-	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/nelsonstr/o801/models"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_CreateUser(t *testing.T) {
 	t.Parallel()
-	db := &mockDB{}
-	repo := NewUserRepo(db)
+	db := &MockDB{}
+	repo := NewUserRepository(db)
 
 	assert.Equal(t, db, repo.db)
 }
@@ -34,17 +34,17 @@ func TestCreateUserSuccess(t *testing.T) {
 
 	mock.ExpectBegin()
 
-	expectedSQL := "^INSERT INTO users \\(name\\) VALUES \\(\\$1\\)  RETURNING id$"
+	expectedSQL := "^INSERT INTO users \\(name\\) VALUES \\(\\$1\\)  RETURNING id,name$"
 	name := "new user"
 	mock.ExpectPrepare(expectedSQL)
 
-	mock.ExpectQuery(expectedSQL).WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
+	mock.ExpectQuery(expectedSQL).WillReturnRows(sqlmock.NewRows([]string{"id", "name"}).AddRow(1, name))
 
 	mock.ExpectCommit()
 
 	// when
 	userStorage := &UserRepository{db: db}
-	user, err := userStorage.Create(context.Background(), name)
+	user, err := userStorage.Create(context.Background(), &model.User{Name: name})
 
 	// then
 	assert.NoError(t, err)
@@ -71,11 +71,11 @@ func TestCreateUserBeginError(t *testing.T) {
 
 	// when
 	userStorage := &UserRepository{db: db}
-	user, err := userStorage.Create(context.Background(), "name")
+	user, err := userStorage.Create(context.Background(), &model.User{Name: "name"})
 
 	// then
 	assert.Equal(t, errors.Unwrap(err), errors.New("error"))
-	assert.Equal(t, user, &models.NilUser)
+	assert.Equal(t, user, &model.NilUser)
 
 	err = mock.ExpectationsWereMet()
 	if err != nil {
@@ -95,7 +95,7 @@ func TestCreateUserPrepareError(t *testing.T) {
 
 	mock.ExpectBegin()
 
-	expectedSQL := "^INSERT INTO users \\(name\\) VALUES \\(\\$1\\)  RETURNING id$"
+	expectedSQL := "^INSERT INTO users \\(name\\) VALUES \\(\\$1\\)  RETURNING id,name$"
 	name := "new user"
 	mock.ExpectPrepare(expectedSQL).WillReturnError(errors.New("error"))
 
@@ -103,11 +103,11 @@ func TestCreateUserPrepareError(t *testing.T) {
 
 	// when
 	userStorage := &UserRepository{db: db}
-	user, err := userStorage.Create(context.Background(), name)
+	user, err := userStorage.Create(context.Background(), &model.User{Name: name})
 
 	// then
 	assert.Equal(t, errors.Unwrap(err), errors.New("error"))
-	assert.Equal(t, user, &models.NilUser)
+	assert.Equal(t, user, &model.NilUser)
 
 	err = mock.ExpectationsWereMet()
 	if err != nil {
@@ -127,7 +127,7 @@ func TestCreateUserErrorInsertError(t *testing.T) {
 
 	mock.ExpectBegin()
 
-	expectedSQL := "^INSERT INTO users \\(name\\) VALUES \\(\\$1\\)  RETURNING id$"
+	expectedSQL := "^INSERT INTO users \\(name\\) VALUES \\(\\$1\\)  RETURNING id,name$"
 	name := "new user"
 	mock.ExpectPrepare(expectedSQL)
 
@@ -137,11 +137,11 @@ func TestCreateUserErrorInsertError(t *testing.T) {
 
 	// when
 	userStorage := &UserRepository{db: db}
-	user, err := userStorage.Create(context.Background(), name)
+	user, err := userStorage.Create(context.Background(), &model.User{Name: name})
 
 	// then
 	assert.Equal(t, errors.Unwrap(err), errors.New("error"))
-	assert.Equal(t, user, &models.NilUser)
+	assert.Equal(t, user, &model.NilUser)
 
 	err = mock.ExpectationsWereMet()
 	if err != nil {
@@ -161,22 +161,22 @@ func TestCreateUsesCommitError(t *testing.T) {
 
 	mock.ExpectBegin()
 
-	expectedSQL := "^INSERT INTO users \\(name\\) VALUES \\(\\$1\\)  RETURNING id$"
+	expectedSQL := "^INSERT INTO users \\(name\\) VALUES \\(\\$1\\)  RETURNING id,name$"
 	name := "new user"
 	mock.ExpectPrepare(expectedSQL)
 
-	mock.ExpectQuery(expectedSQL).WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
+	mock.ExpectQuery(expectedSQL).WillReturnRows(sqlmock.NewRows([]string{"id", "name"}).AddRow(1, name))
 
 	mock.ExpectCommit().WillReturnError(errors.New("error"))
 
 	// when
 	userStorage := &UserRepository{db: db}
-	user, err := userStorage.Create(context.Background(), name)
+	user, err := userStorage.Create(context.Background(), &model.User{Name: name})
 
 	// then
 	assert.Error(t, err)
 	assert.Equal(t, errors.Unwrap(err), errors.New("error"))
-	assert.Equal(t, user, &models.NilUser)
+	assert.Equal(t, user, &model.NilUser)
 
 	err = mock.ExpectationsWereMet()
 	if err != nil {
@@ -202,7 +202,7 @@ func TestGetUserSuccess(t *testing.T) {
 
 	// when
 	userStorage := &UserRepository{db: db}
-	user, err := userStorage.Get(context.Background(), 2)
+	user, err := userStorage.Fetch(context.Background(), &model.User{ID: 2})
 
 	// then
 	assert.NoError(t, err)
@@ -232,11 +232,11 @@ func TestGetUserNotFound(t *testing.T) {
 
 	// when
 	userStorage := &UserRepository{db: db}
-	user, err := userStorage.Get(context.Background(), 2)
+	user, err := userStorage.Fetch(context.Background(), &model.User{ID: 2})
 
 	// then
 	assert.NoError(t, err)
-	assert.Equal(t, &models.NilUser, user)
+	assert.Equal(t, &model.NilUser, user)
 
 	err = mock.ExpectationsWereMet()
 	if err != nil {
@@ -259,11 +259,11 @@ func TestGetUserError(t *testing.T) {
 
 	// when
 	userStorage := &UserRepository{db: db}
-	user, err := userStorage.Get(context.Background(), 2)
+	user, err := userStorage.Fetch(context.Background(), &model.User{ID: 2})
 
 	// then
 	assert.Error(t, err)
-	assert.Equal(t, &models.NilUser, user)
+	assert.Equal(t, &model.NilUser, user)
 
 	err = mock.ExpectationsWereMet()
 	if err != nil {

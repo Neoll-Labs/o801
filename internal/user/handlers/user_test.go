@@ -8,21 +8,21 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
+	"github.com/nelsonstr/o801/internal"
 	"github.com/nelsonstr/o801/internal/router"
+	"github.com/nelsonstr/o801/internal/user/service"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/nelsonstr/o801/models"
 	"github.com/stretchr/testify/assert"
 )
 
-var mockUser = &models.User{ID: 14, Name: "nelson"}
+var mockUser = &service.User{ID: 14, Name: "nelson"}
 
 func TestUserHandlerAPI_Get_Success(t *testing.T) {
 	t.Parallel()
-	handler := NewUserServer(&UserFakeRepository{
+	handler := NewUserHandler(&MockService{
 		user: mockUser,
 	})
 	req := httptest.NewRequest(http.MethodGet, "/user/1", http.NoBody)
@@ -33,7 +33,7 @@ func TestUserHandlerAPI_Get_Success(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, rr.Code)
 
-	var responseUser models.User
+	var responseUser service.User
 	err := json.Unmarshal(rr.Body.Bytes(), &responseUser)
 
 	assert.NoError(t, err)
@@ -42,7 +42,7 @@ func TestUserHandlerAPI_Get_Success(t *testing.T) {
 
 func TestUserHandlerAPI_Get_InvalidParameters(t *testing.T) {
 	t.Parallel()
-	handler := NewUserServer(&UserFakeRepository{
+	handler := NewUserHandler(&MockService{
 		user: mockUser,
 	})
 	req := httptest.NewRequest(http.MethodGet, "/user/1", http.NoBody)
@@ -54,9 +54,23 @@ func TestUserHandlerAPI_Get_InvalidParameters(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, rr.Code)
 }
 
+func TestUserHandlerAPI_Get_InvalidParameterKind(t *testing.T) {
+	t.Parallel()
+	handler := NewUserHandler(&MockService{
+		user: mockUser,
+	})
+	req := httptest.NewRequest(http.MethodGet, "/user/1", http.NoBody)
+	rr := httptest.NewRecorder()
+
+	ctx := context.WithValue(req.Context(), router.ParametersName, "")
+	handler.Get(rr, req.WithContext(ctx))
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
 func TestUserHandlerAPI_Get_InvalidID(t *testing.T) {
 	t.Parallel()
-	handler := NewUserServer(&UserFakeRepository{
+	handler := NewUserHandler(&MockService{
 		user: mockUser,
 	})
 	req := httptest.NewRequest(http.MethodGet, "/user/1", http.NoBody)
@@ -70,7 +84,7 @@ func TestUserHandlerAPI_Get_InvalidID(t *testing.T) {
 
 func TestUserHandlerAPI_Get_FromCache(t *testing.T) {
 	t.Parallel()
-	handler := NewUserServer(&UserFakeRepository{
+	handler := NewUserHandler(&MockService{
 		user: mockUser,
 	})
 	req := httptest.NewRequest(http.MethodGet, "/user/1", http.NoBody)
@@ -83,7 +97,7 @@ func TestUserHandlerAPI_Get_FromCache(t *testing.T) {
 	handler.Get(rr, req.WithContext(ctx))
 	assert.Equal(t, http.StatusOK, rr.Code)
 
-	var responseUser models.User
+	var responseUser service.User
 	err := json.Unmarshal(rr.Body.Bytes(), &responseUser)
 
 	assert.NoError(t, err)
@@ -92,8 +106,8 @@ func TestUserHandlerAPI_Get_FromCache(t *testing.T) {
 
 func TestUserHandlerAPI_Get_DBError(t *testing.T) {
 	t.Parallel()
-	handler := NewUserServer(&UserFakeRepository{
-		error: errors.New("DB error"),
+	handler := NewUserHandler(&MockService{
+		error: &internal.StorageError{},
 	})
 	req := httptest.NewRequest(http.MethodGet, "/user/1", http.NoBody)
 	rr := httptest.NewRecorder()
@@ -106,8 +120,9 @@ func TestUserHandlerAPI_Get_DBError(t *testing.T) {
 
 func TestUserHandlerAPI_Get_NotFound(t *testing.T) {
 	t.Parallel()
-	handler := NewUserServer(&UserFakeRepository{
-		user: &models.NilUser,
+	handler := NewUserHandler(&MockService{
+		user:  &service.NilUser,
+		error: &internal.NotFoundError{},
 	})
 	req := httptest.NewRequest(http.MethodGet, "/user/1", http.NoBody)
 	rr := httptest.NewRecorder()
@@ -120,7 +135,7 @@ func TestUserHandlerAPI_Get_NotFound(t *testing.T) {
 
 func TestUserHandlerAPI_Create(t *testing.T) {
 	t.Parallel()
-	handler := NewUserServer(&UserFakeRepository{
+	handler := NewUserHandler(&MockService{
 		user: mockUser,
 	})
 
@@ -139,7 +154,7 @@ func TestUserHandlerAPI_Create(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, rr.Code)
 
-	var responseUser models.User
+	var responseUser service.User
 	err = json.Unmarshal(rr.Body.Bytes(), &responseUser)
 	assert.NoError(t, err)
 	assert.Equal(t, mockUser, &responseUser)
@@ -147,7 +162,7 @@ func TestUserHandlerAPI_Create(t *testing.T) {
 
 func TestUserHandlerAPI_Create_BadRequest(t *testing.T) {
 	t.Parallel()
-	handler := NewUserServer(&UserFakeRepository{})
+	handler := NewUserHandler(&MockService{})
 
 	req := httptest.NewRequest(http.MethodPost, "/user", bytes.NewBuffer([]byte("invalid")))
 
@@ -159,8 +174,8 @@ func TestUserHandlerAPI_Create_BadRequest(t *testing.T) {
 
 func TestUserHandlerAPI_Create_Invalid(t *testing.T) {
 	t.Parallel()
-	handler := NewUserServer(&UserFakeRepository{
-		error: errors.New("DB error"),
+	handler := NewUserHandler(&MockService{
+		error: &internal.StorageError{},
 	})
 
 	createUserReq := struct {
@@ -177,17 +192,16 @@ func TestUserHandlerAPI_Create_Invalid(t *testing.T) {
 	assert.Equal(t, http.StatusBadGateway, rr.Code)
 }
 
-// mocks to run unit test
-
-type UserFakeRepository struct {
-	user  *models.User
+// MockService mocks to run unit test.
+type MockService struct {
+	user  *service.User
 	error error
 }
 
-func (f *UserFakeRepository) Create(_ context.Context, _ string) (*models.User, error) {
-	return f.user, f.error
+func (s *MockService) Create(_ context.Context, _ *service.User) (*service.User, error) {
+	return s.user, s.error
 }
 
-func (f *UserFakeRepository) Get(_ context.Context, _ int) (*models.User, error) {
-	return f.user, f.error
+func (s *MockService) Get(_ context.Context, _ *service.User) (*service.User, error) {
+	return s.user, s.error
 }
