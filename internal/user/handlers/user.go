@@ -17,24 +17,24 @@ import (
 
 // Interface assertions.
 var (
-	_ http.HandlerFunc = (*userHandler)(nil).Get
-	_ http.HandlerFunc = (*userHandler)(nil).Create
+	_ http.HandlerFunc = (*UserHandler)(nil).Get
+	_ http.HandlerFunc = (*UserHandler)(nil).Create
 )
 
-type userHandler struct {
+type UserHandler struct {
 	service      interfaces.ServiceAPI[*userModel.UserView]
 	ErrorHandler internal.ErrorHandler
 }
 
-func NewUserHandler(service interfaces.ServiceAPI[*userModel.UserView]) *userHandler {
-	return &userHandler{
+func NewUserHandler(service interfaces.ServiceAPI[*userModel.UserView]) *UserHandler {
+	return &UserHandler{
 		service:      service,
 		ErrorHandler: internal.DefaultErrorHandler,
 	}
 }
 
 // Get the user from the storage.
-func (h *userHandler) Get(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) Get(w http.ResponseWriter, r *http.Request) {
 	const (
 		expectedParameters = 2
 		parameterID        = 1
@@ -74,7 +74,7 @@ func (h *userHandler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 // Create user.
-func (h *userHandler) Create(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	createUserReq := struct {
 		Name string `json:"name"`
 	}{}

@@ -12,25 +12,25 @@ import (
 	"github.com/nelsonstr/o801/internal/model"
 )
 
-type userService struct {
+type UserService struct {
 	cache        interfaces.Cache[model.UserView]
 	repository   interfaces.Repository[*model.User]
 	errorHandler internal.ErrorHandler
 }
 
 var (
-	_ interfaces.ServiceAPI[*model.UserView] = (*userService)(nil)
+	_ interfaces.ServiceAPI[*model.UserView] = (*UserService)(nil)
 )
 
-func NewUserService(repo interfaces.Repository[*model.User], cache interfaces.Cache[model.UserView]) *userService {
-	return &userService{
+func NewUserService(repo interfaces.Repository[*model.User], cache interfaces.Cache[model.UserView]) *UserService {
+	return &UserService{
 		cache:        cache,
 		repository:   repo,
 		errorHandler: internal.DefaultErrorHandler,
 	}
 }
 
-func (s userService) Get(ctx context.Context, usr *model.UserView) (*model.UserView, error) {
+func (s UserService) Get(ctx context.Context, usr *model.UserView) (*model.UserView, error) {
 	if user, exists := s.cache.Get(usr.ID); exists {
 		return &user, nil
 	}
@@ -53,7 +53,7 @@ func (s userService) Get(ctx context.Context, usr *model.UserView) (*model.UserV
 	return <-chanUser, nil
 }
 
-func (s userService) Create(ctx context.Context, usr *model.UserView) (*model.UserView, error) {
+func (s UserService) Create(ctx context.Context, usr *model.UserView) (*model.UserView, error) {
 	mUser, err := s.repository.Create(ctx, &model.User{Name: usr.Name})
 	if err != nil {
 		return &model.NilUserView, &internal.StorageError{
@@ -68,7 +68,7 @@ func (s userService) Create(ctx context.Context, usr *model.UserView) (*model.Us
 	return <-chanUser, nil
 }
 
-func (s userService) cacheSet(userChan chan *model.UserView, mUser *model.User) {
+func (s UserService) cacheSet(userChan chan *model.UserView, mUser *model.User) {
 	user := &model.UserView{
 		ID:   mUser.ID,
 		Name: mUser.Name,

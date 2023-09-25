@@ -140,9 +140,7 @@ func (m *mockCache[T]) Get(_ int64) (T, bool) {
 	return m.user, m.exists
 }
 
-func (m *mockCache[T]) Set(_ int64, _ *T) {
-	return
-}
+func (m *mockCache[T]) Set(_ int64, _ *T) {}
 
 func (m *mockCache[T]) Len() int {
 	return m.length

@@ -14,12 +14,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var beginError = errors.New("begin error")
+var errBeginError = errors.New("begin error")
 
 func TestExecuteTablesScriptsDBBeginError(t *testing.T) {
 	t.Parallel()
 	db := &MockDB{BeginFunc: func() (*sql.Tx, error) {
-		return nil, beginError
+		return nil, errBeginError
 	}}
 
 	m := &migrate{db: db}

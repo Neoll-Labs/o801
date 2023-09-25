@@ -54,7 +54,7 @@ func (u *UserRepository) Create(_ context.Context, user *userModel.User) (*userM
 	return newUser, nil
 }
 
-// Fetch User with id.
+// Get User with id.
 func (u *UserRepository) Get(_ context.Context, usr *userModel.User) (*userModel.User, error) {
 	rows := u.db.QueryRow("select id, name from users where id = $1", usr.ID)
 
