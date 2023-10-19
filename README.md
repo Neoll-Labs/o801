@@ -1,7 +1,10 @@
+# overview
+It uses net/http and a custom router to deal with http request and forward them to handlers.
+Rest service to create and get a resource.
+There is a cache to skip the call to the DB.
 
+The CI workflow is implemented to run lints, tests, and docker images.
 
-Open API documentation
-[OpenAPI documentation swagger](https://editor-next.swagger.io/?url=https://raw.githubusercontent.com/nelsonstr/o801/main/api/openapi.yaml)
 
 ## interfaces definition
 
